@@ -1,13 +1,25 @@
 # Maven
 target/
+dependency-reduced-pom.xml
 
-# IDE
-.idea/
+# IntelliJ IDEA (config locale ignorée, config partagée d'équipe commitée)
+.idea/libraries/
+.idea/shelf/
+.idea/compiler.xml
+.idea/jarRepositories.xml
+.idea/modules.xml
+.idea/workspace.xml
+*.iws
 *.iml
+*.ipr
+
+# Autres IDE
 .vscode/
 .classpath
 .project
 .settings/
 
 # OS
+*~
 .DS_Store
+Thumbs.db
