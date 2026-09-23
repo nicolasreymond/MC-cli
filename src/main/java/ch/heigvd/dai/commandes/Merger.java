@@ -1,6 +1,6 @@
-package ch.heigvd.commands;
+package ch.heigvd.dai.commandes;
 
-import ch.heigvd.Main;
+import ch.heigvd.dai.Main;
 import java.util.concurrent.Callable;
 import picocli.CommandLine;
 
