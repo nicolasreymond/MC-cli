@@ -34,4 +34,4 @@ java -jar target/MC-cli.jar mosaic <cible.bmp> <banque/> <sortie.bmp>
 
 ## Auteurs
 
-<!-- TODO: noms du groupe -->
+Nicolas Reymond, Aymeric Bonny
