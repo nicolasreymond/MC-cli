@@ -14,23 +14,19 @@ public class Merger implements Callable<Integer> {
 
   @CommandLine.ParentCommand protected Main parent;
 
+  /*TODO si on veut pouvoir input une quantité d'arguments variables on peut pas faire comme ce qui suit
+  *  en fait les index sont immuables si on veut l'écrire comme ça, donc ce qu'il faut faire à la place
+  *  c'est enregistrer les arguments comme une liste, et ensuite seulement traiter la liste dans le call()
+  *  ou alors, on peut mettre les arguments des images à merge à la fin, comme ça elles sont optionnelles
+  *  et on peut alors en mettre combien on veut*/
+
   @CommandLine.Parameters(index = "0",
-          description = "The source image file.")
+          description = "The source directory.")
   private File inputDirectory;
 
   @CommandLine.Parameters(index = "1",
           description = "The destination folder for the tiles.")
   private File outputDir;
-
-  @CommandLine.Option(names = {"-r", "--rows"},
-          description = "Number of rows",
-          defaultValue = "2")
-  private int rows;
-
-  @CommandLine.Option(names = {"-c", "--cols"},
-          description = "Number of columns",
-          defaultValue = "2")
-  private int cols;
 
   @Override
   public Integer call() {
@@ -48,7 +44,7 @@ public class Merger implements Callable<Integer> {
     }
 
     catch (Exception e) {
-      System.err.println("An error occurred during splitting: " + e.getMessage());
+      System.err.println("An error occurred during merging: " + e.getMessage());
       return 1;
     }
 
