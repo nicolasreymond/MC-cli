@@ -49,6 +49,8 @@ public class Splitter implements Callable<Integer> {
         System.err.println("Error: Could not read the image.");
         return 1;
       }
+
+      ImageIO.write(RenderedImage im, String formatName, File outputDir);
     }
 
     catch (Exception e) {
