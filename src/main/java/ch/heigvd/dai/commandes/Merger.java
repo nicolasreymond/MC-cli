@@ -4,49 +4,107 @@ import ch.heigvd.dai.Main;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.List; // To merge a list of images
 import java.util.concurrent.Callable;
 import picocli.CommandLine;
 
+import picocli.CommandLine.Command;
+import picocli.CommandLine.ParentCommand;
+import picocli.CommandLine.ArgGroup;
+import picocli.CommandLine.Parameters;
+import picocli.CommandLine.Option;
+
 import javax.imageio.ImageIO;
 
-@CommandLine.Command(name = "merge", description = "Merge a grid of images into a single image.")
+@Command(name = "merge",
+         description = "Merge a grid of images into a single image.")
 public class Merger implements Callable<Integer> {
 
-  @CommandLine.ParentCommand protected Main parent;
+  @ParentCommand protected Main parent;
 
-  /*TODO si on veut pouvoir input une quantité d'arguments variables on peut pas faire comme ce qui suit
-  *  en fait les index sont immuables si on veut l'écrire comme ça, donc ce qu'il faut faire à la place
-  *  c'est enregistrer les arguments comme une liste, et ensuite seulement traiter la liste dans le call()
-  *  ou alors, on peut mettre les arguments des images à merge à la fin, comme ça elles sont optionnelles
-  *  et on peut alors en mettre combien on veut*/
+  // Mutually exclusive inputs
+  @ArgGroup(exclusive = true,
+            multiplicity = "1")
+  private InputSources inputSources;
 
-  @CommandLine.Parameters(index = "0",
-          description = "The source directory.")
-  private File inputDirectory;
+  static class InputSources {
+    @Parameters(paramLabel = "<files>",
+                arity = "1..*",
+                description = "Liste des images à fusionner (ex: img1.png img2.png).")
+    List<File> files;
 
-  @CommandLine.Parameters(index = "1",
-          description = "The destination folder for the tiles.")
-  private File outputDir;
+    @Option(names = {"-d", "--directory"},
+            description = "Dossier contenant les images à fusionner.")
+    File directory;
+  }
+
+  // Output file
+  @Option(names = {"-o", "--output"},
+          required = true,
+          description = "Fichier d'image de sortie (ex: result.png).")
+  private File outputFile;
+
+  // Repeat a single image
+  @Option(names = {"-r", "--repeat"},
+          description = "Répète une image d'entrée N fois (utile avec un seul fichier en entrée).")
+  private Integer repeat;
+
+  // Mutually exclusive layouts
+  @ArgGroup(exclusive = true,
+            multiplicity = "0..1")
+  private LayoutOptions layout;
+
+  static class LayoutOptions {
+    @Option(names = {"-v", "--vertical"},
+            description = "Fusion verticale (1 colonne, N lignes).")
+    boolean vertical;
+
+    @Option(names = {"-h", "--horizontal"},
+            description = "Fusion horizontale (1 ligne, N colonnes).")
+    boolean horizontal;
+
+    // Non-mutually exclusive subgroup to force the usage of both rows and columns
+    @ArgGroup(exclusive = false)
+    GridOptions grid;
+  }
+
+  static class GridOptions {
+    @Option(names = {"--rows"},
+            required = true,
+            description = "Nombre de lignes de la grille finale.")
+    int rows;
+
+    @Option(names = {"--cols"},
+            required = true,
+            description = "Nombre de colonnes de la grille finale.")
+    int cols;
+  }
 
   @Override
   public Integer call() {
-    try {
-      if (!inputDirectory.exists() || !inputDirectory.isDirectory()) {
-        System.err.println("Error: Input files do not exist.");
-        return 1;
-      }
 
-      BufferedImage image = ImageIO.read(firstImage);
-      if (image == null) {
-        System.err.println("Error: Could not read the image.");
-        return 1;
-      }
-    }
-
-    catch (Exception e) {
-      System.err.println("An error occurred during merging: " + e.getMessage());
+    if (repeat != null && (inputSources.files == null || inputSources.files.size() != 1)) {
+      System.err.println("Error : The --repeat option can only be used when the input is a single image");
       return 1;
     }
+
+    List<File> imagesToProcess;
+    if (inputSources.directory != null) {
+      // Lists the files in the directory
+      System.out.println("Lecture depuis le dossier : " + inputSources.directory);
+    } else {
+      imagesToProcess = inputSources.files;
+      System.out.println("Lecture des fichiers : " + imagesToProcess);
+    }
+
+    // Find out the final layout
+    if (layout != null) {
+      if (layout.vertical) System.out.println("Mode : Vertical");
+      else if (layout.horizontal) System.out.println("Mode : Horizontal");
+      else if (layout.grid != null)
+        System.out.printf("Mode : Grille (%d lignes, %d colonnes)%n", layout.grid.rows, layout.grid.cols);
+    } else System.out.println("Mode par défaut (déduction automatique via les noms de fichiers)");
+
 
     return 0;
   }
