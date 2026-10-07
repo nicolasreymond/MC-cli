@@ -1,20 +1,21 @@
 package ch.heigvd.dai.commandes;
 
 import ch.heigvd.dai.Main;
+import ch.heigvd.dai.bmp.BmpImage;
 
-import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List; // To merge a list of images
 import java.util.concurrent.Callable;
-import picocli.CommandLine;
 
 import picocli.CommandLine.Command;
 import picocli.CommandLine.ParentCommand;
 import picocli.CommandLine.ArgGroup;
 import picocli.CommandLine.Parameters;
 import picocli.CommandLine.Option;
-
-import javax.imageio.ImageIO;
 
 @Command(name = "merge",
          description = "Merge a grid of images into a single image.")
