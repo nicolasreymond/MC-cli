@@ -34,10 +34,10 @@ public class Splitter implements Callable<Integer> {
                       defaultValue = "2")
   private int cols;
 
-  @CommandLine.Option(names = {"-p", "--prefix"},
-                      description = "Filename prefix for the generated tiles.",
+  @CommandLine.Option(names = {"-s", "--suffix"},
+                      description = "Text appended to each tile file name, after the row/column indices.",
                       defaultValue = "tile")
-  private String prefix;
+  private String suffix;
 
   @CommandLine.Option(names = {"-h", "--help"}, usageHelp = true, description = "Display this help message.")
   private boolean helpRequested = false;
@@ -79,7 +79,7 @@ public class Splitter implements Callable<Integer> {
     }
 
     // Les indices de position sont mis en premier dans le nom (avant le
-    // prefixe), avec zero-padding, pour que le tri alphabetique du dossier
+    // suffixe), avec zero-padding, pour que le tri alphabetique du dossier
     // reste dans l'ordre de la grille (utile pour un merge ulterieur qui
     // trie par nom).
     int indexDigits = Integer.toString(Math.max(rows, cols) - 1).length();
@@ -94,7 +94,7 @@ public class Splitter implements Callable<Integer> {
       for (int col = 0; col < cols; col++) {
         BmpImage tile = image.crop(col * tileWidth, row * tileHeight, tileWidth, tileHeight);
         String fileName = String.format(indexFormat, row) + "_" + String.format(indexFormat, col)
-            + "_" + prefix + ".bmp";
+            + "_" + suffix + ".bmp";
         File tileFile = new File(outputDir, fileName);
         try (FileOutputStream out = new FileOutputStream(tileFile)) {
           tile.writeTo(out);
@@ -109,14 +109,14 @@ public class Splitter implements Callable<Integer> {
     return 0;
   }
 
-  /** Vrai si outputDir contient deja des tuiles issues d'un split precedent avec ce prefixe. */
+  /** Vrai si outputDir contient deja des tuiles issues d'un split precedent avec ce suffixe. */
   private boolean existingTiles(File outputDir, int indexDigits) {
     File[] files = outputDir.listFiles();
     if (files == null) {
       return false;
     }
     Pattern tilePattern = Pattern.compile(
-        "\\d{" + indexDigits + "}_\\d{" + indexDigits + "}_" + Pattern.quote(prefix) + "\\.bmp");
+        "\\d{" + indexDigits + "}_\\d{" + indexDigits + "}_" + Pattern.quote(suffix) + "\\.bmp");
     for (File f : files) {
       if (tilePattern.matcher(f.getName()).matches()) {
         return true;
