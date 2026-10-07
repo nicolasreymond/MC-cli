@@ -5,12 +5,12 @@ import ch.heigvd.dai.commandes.Splitter;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
-// TODO: options/description a affiner ; ajouter Mosaic une fois ecrite
-// (ch.heigvd.dai.commandes.Mosaic) a la liste des subcommands.
 @Command(
     name = "mc-cli",
     subcommands = {Splitter.class, Merger.class},
-    description = "Split, merge and mosaic BMP images.")
+    mixinStandardHelpOptions = true,
+    version = "mc-cli 1.0-SNAPSHOT",
+    description = "Split, merge and mosaic uncompressed 24-bit BMP images.")
 public class Main {
 
   public static void main(String[] args) {
