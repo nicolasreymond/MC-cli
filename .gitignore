@@ -1,25 +1,34 @@
 # Maven
 target/
 dependency-reduced-pom.xml
+*.log
 
-# IntelliJ IDEA (config locale ignorée, config partagée d'équipe commitée)
+# IntelliJ IDEA (config locale ignoree, config d'equipe partagee commitee)
 .idea/libraries/
 .idea/shelf/
 .idea/compiler.xml
 .idea/jarRepositories.xml
 .idea/modules.xml
 .idea/workspace.xml
+.idea/.gitignore
 *.iws
 *.iml
 *.ipr
 
-# Autres IDE
-.vscode/
 .classpath
 .project
 .settings/
+
+# VS Code
+.vscode/
 
 # OS
 *~
 .DS_Store
 Thumbs.db
+
+# Images (garder seulement quelques fichiers de test legers)
+*.bmp
+!examples/banque/flowers_1.bmp
+!examples/banque/abstract_art_1.bmp
+!examples/banque/forest_1.bmp
