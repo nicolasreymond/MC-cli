@@ -110,7 +110,8 @@ public class Splitter implements Callable<Integer> {
       }
     }
 
-    System.out.println("Split " + inputFile.getName() + " into " + rows + "x" + cols + " tiles in " + outputDir);
+    System.out.println("Split " + inputFile.getName() + " into a " + rows + "x" + cols
+        + " grid (rows x cols) in " + outputDir);
     return 0;
   }
 

@@ -121,7 +121,7 @@ java -jar target/MC-cli.jar split examples/banque/forest_1.bmp out/ -r 3 -c 4
 Expected output:
 
 ```
-Split forest_1.bmp into 3x4 tiles in out
+Split forest_1.bmp into a 3x4 grid (rows x cols) in out
 ```
 
 `out/` now contains 12 tiles, named in reading order:
