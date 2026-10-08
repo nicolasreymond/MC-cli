@@ -15,6 +15,24 @@ java -jar target/MC-cli.jar split examples/banque/forest_1.bmp out/ -r 3 -c 4
 The 12 tiles land in `out/`. Requires JDK 25, see
 [Requirements](#requirements).
 
+## Table of contents
+
+- [Quick start](#quick-start)
+- [Description](#description)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Usage](#usage)
+  - [`split`](#split)
+  - [`merge`](#merge)
+  - [`mosaic`](#mosaic)
+- [Supported image format](#supported-image-format)
+- [Exit codes](#exit-codes)
+- [Troubleshooting](#troubleshooting)
+- [Project structure](#project-structure)
+- [Tests](#tests)
+- [Contributing](#contributing)
+- [Authors](#authors)
+
 ## Description
 
 MC-cli works on uncompressed 24-bit BMP images (see
@@ -205,15 +223,37 @@ Errors about the image file itself are printed as
 ## Project structure
 
 ```
-src/main/java/ch/heigvd/dai/
-├── Main.java                 # root picocli command
-├── commandes/
-│   ├── Splitter.java          # split
-│   └── Merger.java            # merge
-└── bmp/
-    ├── BmpHeader.java          # BMP file/DIB header (read/write, little-endian)
-    └── BmpImage.java           # full BMP image (header + pixels), crop, pixel access
+MC-cli/
+├── pom.xml                         # Maven build: Java 25, picocli, JUnit 5, executable JAR
+├── mvnw, mvnw.cmd, .mvn/           # Maven wrapper (no Maven install needed)
+├── src/
+│   ├── main/java/ch/heigvd/dai/
+│   │   ├── Main.java               # root `mc-cli` command, registers the subcommands
+│   │   ├── commandes/
+│   │   │   ├── Splitter.java       # `split` command
+│   │   │   └── Merger.java         # `merge` command (work in progress)
+│   │   └── bmp/
+│   │       ├── BmpHeader.java      # 54-byte BMP header: read, validate, write (little-endian)
+│   │       └── BmpImage.java       # whole image: pixel I/O, crop, get/set pixel
+│   └── test/java/ch/heigvd/dai/
+│       └── bmp/BmpImageTest.java   # unit tests for the BMP classes (to be written, #18)
+├── examples/banque/                # sample 24-bit BMP images to try the commands
+└── docs/images/                    # PNG screenshots used in this README
 ```
+
+The code is split in two layers:
+
+- **`bmp`** is the only package that opens, reads or writes image files,
+  using `java.io` only, as required by the assignment. In memory, an
+  image is a plain `byte[]` of R, G, B values, top row first, without
+  padding, so the commands never deal with the on-disk layout.
+- **`commandes`** holds one [picocli](https://picocli.info) class per
+  subcommand. Each one parses its options, validates them, and works on
+  `BmpImage` objects.
+
+To add a command, create a class in `commandes` that implements
+`Callable<Integer>`, annotate it with `@Command`, and add it to the
+`subcommands` list in `Main`.
 
 ## Tests
 
@@ -221,6 +261,24 @@ src/main/java/ch/heigvd/dai/
 ./mvnw test
 ```
 
+## Contributing
+
+The two authors work through GitHub issues and pull requests:
+
+1. Pick an issue and assign yourself (`gh issue edit <n> --add-assignee @me`).
+2. Create a branch from `dev`, named after the kind of change:
+   `feat/...`, `fix/...`, `docs/...`, `test/...`, `chore/...`.
+3. Commit in small steps using
+   [Conventional Commits](https://www.conventionalcommits.org) messages
+   (`feat(merge): ...`, `fix(split): ...`, `docs: ...`), and tick the
+   matching task boxes in the issue as you go.
+4. Open a pull request to `dev` with `Closes #<n>` in its description and
+   ask the other author for a review.
+5. Once `dev` is stable, it is merged into `main` through a pull request.
+
+Make sure `./mvnw clean package` succeeds before opening a pull request.
+
 ## Authors
 
-Nicolas Reymond, Aymeric Bonny
+- Nicolas Reymond ([@nicolasreymond](https://github.com/nicolasreymond))
+- Aymeric Bonny ([@albonny](https://github.com/albonny))
