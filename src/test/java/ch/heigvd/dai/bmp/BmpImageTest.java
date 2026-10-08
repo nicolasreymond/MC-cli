@@ -2,6 +2,8 @@ package ch.heigvd.dai.bmp;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -63,6 +65,17 @@ class BmpImageTest {
     bb.putInt(2835).putInt(2835).putInt(0).putInt(0);
     bb.put(pixelData);
     return bb.array();
+  }
+
+  /** Plus petit BMP valide : 1x1, une rangee de 4 octets (3 + 1 de padding). */
+  private static byte[] validBmp() {
+    return bmp(1, 1, (short) 24, 0, 40, new byte[4]);
+  }
+
+  private static void assertReadFails(byte[] bytes, String expectedMessagePart) {
+    IOException e = assertThrows(IOException.class, () -> read(bytes));
+    assertTrue(e.getMessage().contains(expectedMessagePart),
+        "message \"" + e.getMessage() + "\" should contain \"" + expectedMessagePart + "\"");
   }
 
   // --- Aller-retour et padding des rangees ---
@@ -128,5 +141,51 @@ class BmpImageTest {
     // rangee de 4 octets (3 + 1 de padding) : d'abord le bas (bleu), puis le haut (rouge)
     assertArrayEquals(new byte[] {(byte) 255, 0, 0}, Arrays.copyOfRange(bytes, 54, 57));
     assertArrayEquals(new byte[] {0, 0, (byte) 255}, Arrays.copyOfRange(bytes, 58, 61));
+  }
+
+  // --- En-tetes invalides ou non supportes ---
+
+  @Test
+  void rejectsMissingSignature() {
+    byte[] bytes = validBmp();
+    bytes[0] = 'P';
+    assertReadFails(bytes, "'BM' signature");
+  }
+
+  @Test
+  void rejectsTruncatedHeader() {
+    assertReadFails(Arrays.copyOf(validBmp(), 20), "header is truncated");
+  }
+
+  @Test
+  void rejectsTruncatedPixelData() {
+    byte[] bytes = bmp(2, 2, (short) 24, 0, 40, new byte[16]);
+    assertReadFails(Arrays.copyOf(bytes, bytes.length - 3), "pixel data");
+  }
+
+  @Test
+  void rejectsOtherDibHeaderSizes() {
+    assertReadFails(bmp(1, 1, (short) 24, 0, 124, new byte[4]), "BITMAPINFOHEADER");
+  }
+
+  @Test
+  void rejectsCompressedBitmaps() {
+    assertReadFails(bmp(1, 1, (short) 24, 1, 40, new byte[4]), "compressed");
+  }
+
+  @Test
+  void rejectsOtherBitDepths() {
+    assertReadFails(bmp(1, 1, (short) 32, 0, 40, new byte[4]), "only 24-bit");
+  }
+
+  @Test
+  void rejectsTopDownBitmaps() {
+    assertReadFails(bmp(1, -1, (short) 24, 0, 40, new byte[4]), "top-down");
+  }
+
+  @Test
+  void rejectsEmptyImages() {
+    assertThrows(IOException.class, () -> read(bmp(0, 1, (short) 24, 0, 40, new byte[0])));
+    assertThrows(IOException.class, () -> read(bmp(1, 0, (short) 24, 0, 40, new byte[0])));
   }
 }
