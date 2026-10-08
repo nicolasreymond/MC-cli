@@ -25,12 +25,12 @@ public class Splitter implements Callable<Integer> {
   private File outputDir;
 
   @CommandLine.Option(names = {"-r", "--rows"},
-                      description = "Number of rows",
+                      description = "Number of rows.",
                       defaultValue = "2")
   private int rows;
 
   @CommandLine.Option(names = {"-c", "--cols"},
-                      description = "Number of columns",
+                      description = "Number of columns.",
                       defaultValue = "2")
   private int cols;
 
