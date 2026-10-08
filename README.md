@@ -217,6 +217,7 @@ Errors about the image file itself are printed as
 | `Unsupported BMP: only 24-bit RGB is supported, got 32 bits/pixel.` | Image with an alpha channel or a palette. [Convert it](#converting-an-image) with `-type TrueColor`. |
 | `Unsupported BMP: compressed bitmaps are not supported.` | RLE-compressed BMP. [Convert it](#converting-an-image). |
 | `Unsupported BMP: top-down bitmaps (negative height) are not supported.` | Rows stored top to bottom. [Convert it](#converting-an-image). |
+| `Invalid BMP: width and height must be positive.` | The header announces an empty image: the file is corrupted. |
 | `Unexpected end of file ...` | The file is truncated or corrupted. |
 | `Error: a 3x4 grid (rows x cols) is too large for a 2x2 image.` | More rows or columns than pixels. Use a smaller grid. |
 | `Error: rows and cols must be positive.` | `-r` and `-c` must be at least 1. |
