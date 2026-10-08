@@ -4,6 +4,17 @@ A command-line tool to split an image into a grid of tiles, merge several
 images into a grid, and (bonus) reconstruct an image as a photo mosaic —
 built for PW1 (DAI course, HEIG-VD).
 
+## Quick start
+
+```sh
+git clone https://github.com/nicolasreymond/MC-cli.git && cd MC-cli
+./mvnw clean package
+java -jar target/MC-cli.jar split examples/banque/forest_1.bmp out/ -r 3 -c 4
+```
+
+The 12 tiles land in `out/`. Requires JDK 25, see
+[Requirements](#requirements).
+
 ## Description
 
 MC-cli reads and writes uncompressed 24-bit BMP files using the Java I/O
@@ -14,13 +25,41 @@ simple, uncompressed format: the pixel bytes are stored as-is, one row
 after another, which makes it a good fit for parsing the file format by
 hand instead of relying on `javax.imageio`.
 
-## Build
+## Requirements
+
+- **JDK 25** or newer, not just a JRE: the sources are compiled on your
+  machine (`maven.compiler.release` is 25, so an older JDK fails at
+  compile time). Check with `javac -version`.
+- **Git**, to get the sources.
+- No Maven install needed: the project ships the Maven wrapper
+  (`./mvnw`, or `mvnw.cmd` on Windows).
+
+## Installation
 
 ```sh
+git clone https://github.com/nicolasreymond/MC-cli.git
+cd MC-cli
 ./mvnw clean package
 ```
 
-Produces an executable JAR at `target/MC-cli.jar`.
+This produces an executable JAR at `target/MC-cli.jar`. Check that it
+runs:
+
+```sh
+java -jar target/MC-cli.jar --version
+```
+
+It should print `mc-cli 1.0-SNAPSHOT`. `--help` lists the commands.
+
+Optionally, add an alias to your shell configuration (`~/.bashrc`,
+`~/.zshrc`) so you can type `mc-cli` instead of the full command:
+
+```sh
+alias mc-cli='java -jar /path/to/MC-cli/target/MC-cli.jar'
+```
+
+The examples below use the full `java -jar target/MC-cli.jar` form, run
+from the project root.
 
 ## Usage
 
