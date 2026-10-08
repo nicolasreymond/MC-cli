@@ -17,13 +17,10 @@ The 12 tiles land in `out/`. Requires JDK 25, see
 
 ## Description
 
-MC-cli reads and writes uncompressed 24-bit BMP files using the Java I/O
-API exclusively (`java.io`, no image library for file access) — see
-[`BmpImage`](src/main/java/ch/heigvd/dai/bmp/BmpImage.java) and
-[`BmpHeader`](src/main/java/ch/heigvd/dai/bmp/BmpHeader.java). BMP is a
-simple, uncompressed format: the pixel bytes are stored as-is, one row
-after another, which makes it a good fit for parsing the file format by
-hand instead of relying on `javax.imageio`.
+MC-cli works on uncompressed 24-bit BMP images (see
+[Supported image format](#supported-image-format)). As required by the
+assignment, files are opened, read and written with `java.io` only, by
+parsing the BMP format by hand instead of using `javax.imageio`.
 
 ## Requirements
 
@@ -148,6 +145,62 @@ Not implemented yet.
 Bonus: reconstructs an image as a photo mosaic.
 
 Not implemented yet.
+
+## Supported image format
+
+MC-cli only reads and writes **BMP** files with these properties:
+
+| Property | Required value |
+|---|---|
+| Signature | `BM` |
+| DIB header | `BITMAPINFOHEADER` (40 bytes) |
+| Bits per pixel | 24 (one byte each for blue, green, red) |
+| Compression | none (`BI_RGB`) |
+| Row order | bottom-up (positive height) |
+
+Inside the file, all multi-byte fields are little-endian, pixels are
+stored as B, G, R, and each row is padded with zeros to a multiple of
+4 bytes. Tiles written by MC-cli always follow this format.
+
+### Converting an image
+
+Many tools write BMP files with a larger header (V4/V5, 108 or 124
+bytes) or 32 bits per pixel, which MC-cli rejects. To convert any image
+(PNG, JPEG, or another BMP) with [ImageMagick](https://imagemagick.org):
+
+```sh
+magick input.png -type TrueColor BMP3:output.bmp
+```
+
+`BMP3:` forces the 40-byte header and `-type TrueColor` forces 24 bits
+per pixel. In GIMP, use *File → Export As…* with a `.bmp` name, tick
+*Do not write color space information*, and pick *24 bits R8 G8 B8*
+under *Advanced Options*.
+
+## Exit codes
+
+| Code | Meaning |
+|---|---|
+| `0` | Success |
+| `1` | Error while running the command (missing file, unreadable or unsupported image, invalid grid, write failure, overwrite refused) |
+| `2` | Invalid usage (unknown option, missing argument); the usage message is printed |
+
+## Troubleshooting
+
+Errors about the image file itself are printed as
+`Error: Could not read the image: <message>`.
+
+| Message | Cause and fix |
+|---|---|
+| `Error: Input file does not exist.` | Check the path to the source image (relative paths start from the current directory). |
+| `Not a BMP file: missing 'BM' signature.` | The file is not a BMP (e.g. a renamed PNG). [Convert it](#converting-an-image). |
+| `Unsupported BMP variant: expected a 40-byte BITMAPINFOHEADER, got 124.` | V4/V5 BMP, as written by default by many editors. [Convert it](#converting-an-image) with `BMP3:`. |
+| `Unsupported BMP: only 24-bit RGB is supported, got 32 bits/pixel.` | Image with an alpha channel or a palette. [Convert it](#converting-an-image) with `-type TrueColor`. |
+| `Unsupported BMP: compressed bitmaps are not supported.` | RLE-compressed BMP. [Convert it](#converting-an-image). |
+| `Unsupported BMP: top-down bitmaps (negative height) are not supported.` | Rows stored top to bottom. [Convert it](#converting-an-image). |
+| `Unexpected end of file ...` | The file is truncated or corrupted. |
+| `Error: grid 4x3 is too large for a 2x2 image.` | More rows or columns than pixels. Use a smaller grid. |
+| `Error: rows and cols must be positive.` | `-r` and `-c` must be at least 1. |
 
 ## Project structure
 
