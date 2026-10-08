@@ -188,4 +188,39 @@ class BmpImageTest {
     assertThrows(IOException.class, () -> read(bmp(0, 1, (short) 24, 0, 40, new byte[0])));
     assertThrows(IOException.class, () -> read(bmp(1, 0, (short) 24, 0, 40, new byte[0])));
   }
+
+  // --- crop ---
+
+  @Test
+  void cropCopiesTheRightPixels() {
+    BmpImage image = gradient(5, 4);
+    BmpImage tile = image.crop(1, 2, 3, 2);
+
+    assertEquals(3, tile.getWidth());
+    assertEquals(2, tile.getHeight());
+    for (int y = 0; y < 2; y++) {
+      for (int x = 0; x < 3; x++) {
+        assertArrayEquals(image.getPixel(1 + x, 2 + y), tile.getPixel(x, y));
+      }
+    }
+  }
+
+  @Test
+  void cropOfTheWholeImageIsACopy() {
+    BmpImage image = gradient(5, 4);
+    assertSamePixels(image, image.crop(0, 0, 5, 4));
+  }
+
+  @Test
+  void cropAtTheBottomRightCorner() {
+    BmpImage image = gradient(5, 4);
+    assertArrayEquals(image.getPixel(4, 3), image.crop(4, 3, 1, 1).getPixel(0, 0));
+  }
+
+  @ParameterizedTest
+  @CsvSource({"-1, 0, 1, 1", "0, -1, 1, 1", "0, 0, 0, 1", "0, 0, 1, 0", "4, 0, 2, 1", "0, 3, 1, 2"})
+  void cropOutsideTheImageThrows(int x0, int y0, int w, int h) {
+    BmpImage image = gradient(5, 4);
+    assertThrows(IllegalArgumentException.class, () -> image.crop(x0, y0, w, h));
+  }
 }
