@@ -27,7 +27,7 @@ Produces an executable JAR at `target/MC-cli.jar`.
 ### `split` — cut an image into a grid of tiles
 
 ```sh
-java -jar target/MC-cli.jar split <inputFile> <outputDir> [-r <rows>] [-c <cols>] [-p <prefix>]
+java -jar target/MC-cli.jar split <inputFile> <outputDir> [-r <rows>] [-c <cols>] [-s <suffix>]
 ```
 
 | Option | Default | Description |
@@ -36,10 +36,10 @@ java -jar target/MC-cli.jar split <inputFile> <outputDir> [-r <rows>] [-c <cols>
 | `<outputDir>` | — | Destination folder for the tiles (positional, required); created if it doesn't exist |
 | `-r`, `--rows` | `2` | Number of grid rows |
 | `-c`, `--cols` | `2` | Number of grid columns |
-| `-p`, `--prefix` | `tile` | Filename suffix for the generated tiles |
+| `-s`, `--suffix` | `tile` | Text appended to each tile file name, after the row/column indices |
 | `-h`, `--help` | — | Show the help message |
 
-**Output filenames**: `<row>_<col>_<prefix>.bmp`, zero-padded so a plain
+**Output filenames**: `<row>_<col>_<suffix>.bmp`, zero-padded so a plain
 alphabetical sort of the output folder matches the grid's reading order
 (row by row) — useful for a later `merge` of the same tiles. Example
 with a 3×17 grid: `00_00_tile.bmp`, `00_01_tile.bmp`, ...
@@ -50,7 +50,7 @@ division) and the leftover pixels on the right/bottom edge are dropped
 silently.
 
 **Existing tiles**: if `outputDir` already contains tiles matching the
-current grid size and prefix, MC-cli asks for confirmation before
+current grid size and suffix, MC-cli asks for confirmation before
 overwriting them (`[y/N]`).
 
 Example:
