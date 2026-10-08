@@ -63,7 +63,9 @@ from the project root.
 
 ## Usage
 
-### `split` — cut an image into a grid of tiles
+### `split`
+
+Cuts an image into a grid of tiles.
 
 ```sh
 java -jar target/MC-cli.jar split <inputFile> <outputDir> [-r <rows>] [-c <cols>] [-s <suffix>]
@@ -92,13 +94,48 @@ silently.
 current grid size and suffix, MC-cli asks for confirmation before
 overwriting them (`[y/N]`).
 
-Example:
+#### Example: split a photo into a 3×4 grid
+
+The repository ships a few test images in `examples/banque/`. Starting
+from the project root, after building:
 
 ```sh
 java -jar target/MC-cli.jar split examples/banque/forest_1.bmp out/ -r 3 -c 4
 ```
 
-### `merge` — assemble several images into a grid (work in progress)
+Expected output:
+
+```
+Split forest_1.bmp into 3x4 tiles in out
+```
+
+`out/` now contains 12 tiles, named in reading order:
+
+```
+0_0_tile.bmp  0_1_tile.bmp  0_2_tile.bmp  0_3_tile.bmp
+1_0_tile.bmp  1_1_tile.bmp  1_2_tile.bmp  1_3_tile.bmp
+2_0_tile.bmp  2_1_tile.bmp  2_2_tile.bmp  2_3_tile.bmp
+```
+
+The source image is 960×640, so each tile is 240×213: 640 is not a
+multiple of 3, and the last row of pixels is dropped.
+
+| Before (`forest_1.bmp`) | After (12 tiles) |
+|---|---|
+| ![Original forest image](docs/images/forest.png) | ![The same image cut into a 3×4 grid of tiles](docs/images/forest-split.png) |
+
+Running the same command again asks before overwriting:
+
+```
+Tiles already exist in the output folder. Overwrite? [y/N]
+```
+
+Use `-s` to give the tiles another name, e.g. `-s part` produces
+`0_0_part.bmp`, `0_1_part.bmp`, ...
+
+### `merge`
+
+Assembles several images into a grid.
 
 ```sh
 java -jar target/MC-cli.jar merge <inputDir> <outputFile> [-r <rows>] [-c <cols>]
@@ -106,7 +143,9 @@ java -jar target/MC-cli.jar merge <inputDir> <outputFile> [-r <rows>] [-c <cols>
 
 Not implemented yet.
 
-### `mosaic` — bonus: reconstruct an image as a photo mosaic (planned)
+### `mosaic`
+
+Bonus: reconstructs an image as a photo mosaic.
 
 Not implemented yet.
 
