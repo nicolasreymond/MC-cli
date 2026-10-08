@@ -73,7 +73,7 @@ public class Splitter implements Callable<Integer> {
     int tileHeight = image.getHeight() / rows;
     if (tileWidth == 0 || tileHeight == 0) {
       System.err.println(
-          "Error: grid " + cols + "x" + rows + " is too large for a "
+          "Error: a " + rows + "x" + cols + " grid (rows x cols) is too large for a "
               + image.getWidth() + "x" + image.getHeight() + " image.");
       return 1;
     }

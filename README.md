@@ -217,7 +217,7 @@ Errors about the image file itself are printed as
 | `Unsupported BMP: compressed bitmaps are not supported.` | RLE-compressed BMP. [Convert it](#converting-an-image). |
 | `Unsupported BMP: top-down bitmaps (negative height) are not supported.` | Rows stored top to bottom. [Convert it](#converting-an-image). |
 | `Unexpected end of file ...` | The file is truncated or corrupted. |
-| `Error: grid 4x3 is too large for a 2x2 image.` | More rows or columns than pixels. Use a smaller grid. |
+| `Error: a 3x4 grid (rows x cols) is too large for a 2x2 image.` | More rows or columns than pixels. Use a smaller grid. |
 | `Error: rows and cols must be positive.` | `-r` and `-c` must be at least 1. |
 
 ## Project structure
