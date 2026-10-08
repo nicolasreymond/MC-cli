@@ -49,6 +49,11 @@ public class Splitter implements Callable<Integer> {
       return 1;
     }
 
+    if (!inputFile.isFile()) {
+      System.err.println("Error: Input is not a file: " + inputFile);
+      return 1;
+    }
+
     if (rows <= 0 || cols <= 0) {
       System.err.println("Error: rows and cols must be positive.");
       return 1;

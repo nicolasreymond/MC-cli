@@ -211,6 +211,7 @@ Errors about the image file itself are printed as
 | Message | Cause and fix |
 |---|---|
 | `Error: Input file does not exist.` | Check the path to the source image (relative paths start from the current directory). |
+| `Error: Input is not a file: ...` | The input path is a folder. Give the path to a `.bmp` file. |
 | `Not a BMP file: missing 'BM' signature.` | The file is not a BMP (e.g. a renamed PNG). [Convert it](#converting-an-image). |
 | `Unsupported BMP variant: expected a 40-byte BITMAPINFOHEADER, got 124.` | V4/V5 BMP, as written by default by many editors. [Convert it](#converting-an-image) with `BMP3:`. |
 | `Unsupported BMP: only 24-bit RGB is supported, got 32 bits/pixel.` | Image with an alpha channel or a palette. [Convert it](#converting-an-image) with `-type TrueColor`. |
