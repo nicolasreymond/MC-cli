@@ -109,6 +109,8 @@ public class Merger implements Callable<Integer> {
       }
 
       List<File> imagesToProcess = new ArrayList<>();
+      boolean isStrictGrid = false;
+      File[][] gridFiles = null;
 
       if (repeat != null) {
         int nbFiles = collectedFiles.size();
@@ -139,7 +141,7 @@ public class Merger implements Callable<Integer> {
 
       int maxRow = 0;
       int maxCol = 0;
-      boolean formatDetected = false;
+      isStrictGrid = true;
 
       // Finds the largest indexes in the file names
       for (File file : imagesToProcess) {
@@ -152,18 +154,34 @@ public class Merger implements Callable<Integer> {
             int col = Integer.parseInt(parts[1]);
             maxRow = Math.max(maxRow, row);
             maxCol = Math.max(maxCol, col);
-            formatDetected = true;
           }
           // In case there are non-conventional files mixed in (ex: "string_with_length_four.bmp")
-          catch (NumberFormatException ignored) {}
+          catch (NumberFormatException e) {
+            isStrictGrid = false; // The parsing has failed
+            break; // No use in checking the rest of it
+          }
+        } else {
+          isStrictGrid = false; // Not enough parts in the name
+          break; // No use in checking the rest of it
         }
       }
 
-      if (formatDetected) {
-        r = maxRow + 1; // Begins at 0
+
+
+      if (isStrictGrid) {
+        System.out.println("Mode : Grille spatiale absolue détectée.");
+        r = maxRow + 1;
         c = maxCol + 1;
-        System.out.printf("Grille détectée : %d lignes x %d colonnes.%n", r, c);
-      } else System.out.println("Format non reconnu. Fallback sur une fusion horizontale.");
+        gridFiles = new File[r][c];
+
+        // Placement des fichiers dans la grille
+        for (File file : imagesToProcess) {
+          String[] parts = file.getName().split("_");
+          int row = Integer.parseInt(parts[0]); // Plus besoin de try-catch, on sait que ça passe
+          int col = Integer.parseInt(parts[1]);
+          gridFiles[row][col] = file;
+        }
+      } else System.out.println("Mode : Fichiers arbitraires. Fusion séquentielle classique.");
     }
 
     if (r * c < imagesToProcess.size())
@@ -172,7 +190,7 @@ public class Merger implements Callable<Integer> {
 //---------------------------------------------------------------------------------------------------------------------
 
     try {
-      processMerge(imagesToProcess, r, c, outputFile);
+      processMerge(imagesToProcess, gridFiles, isStrictGrid, r, c, outputFile);
       System.out.println("Fusion terminée avec succès : " + outputFile.getAbsolutePath());
       return 0;
     } catch (Exception e) {
@@ -181,11 +199,12 @@ public class Merger implements Callable<Integer> {
     }
   }
 
+  //---------------------------------------------------- MERGE OPERATION ----------------------------------------------
   // Separate function, easier to test with JUnit
-  public void processMerge(List<File> imagesToProcess, int r, int c, File outputFile) throws Exception {
+  public void processMerge(List<File> sequentialFiles, File[][] gridFiles, boolean isStrictGrid, int r, int c, File outputFile) throws Exception {
 
     BmpImage firstImage;
-    try (BufferedInputStream in = new BufferedInputStream(new FileInputStream(imagesToProcess.getFirst()))) {
+    try (BufferedInputStream in = new BufferedInputStream(new FileInputStream(sequentialFiles.getFirst()))) {
       firstImage = BmpImage.readFrom(in);
     }
 
@@ -194,12 +213,43 @@ public class Merger implements Callable<Integer> {
     int cellHeight = firstImage.getHeight();
     BmpImage finalImage = BmpImage.create(cellWidth * c, cellHeight * r);
 
+    int imgIndex = 0;
+    for (int row = 0; row < r; row++) {
+      for (int col = 0; col < c; col++) {
+        File currentFile;
 
+        if (isStrictGrid) { // We place the tiles using their index
+          currentFile = gridFiles[row][col];
+          if (currentFile == null) continue; // Missing tile, we keep the tile empty
+        } else { // We merge every image next to one another
+          if (imgIndex >= sequentialFiles.size()) break;
+          currentFile = sequentialFiles.get(imgIndex);
+          imgIndex++;
+        }
 
+        BmpImage currentImg;
+
+        try (BufferedInputStream in = new BufferedInputStream(new FileInputStream(currentFile))) {
+          currentImg = BmpImage.readFrom(in);
+        }
+
+        int drawW = Math.min(cellWidth, currentImg.getWidth());
+        int drawH = Math.min(cellHeight, currentImg.getHeight());
+        int startX = col * cellWidth;
+        int startY = row * cellHeight;
+
+        for (int y = 0; y < drawH; y++) {
+          for (int x = 0; x < drawW; x++) {
+            int[] rgb = currentImg.getPixel(x, y);
+            finalImage.setPixel(startX + x, startY + y, rgb[0], rgb[1], rgb[2]);
+          }
+        }
+      }
+    }
 
     try (BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(outputFile))) {
       finalImage.writeTo(out);
     }
   }
-
+//---------------------------------------------------------------------------------------------------------------------
 }
