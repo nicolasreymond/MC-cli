@@ -25,12 +25,12 @@ public class Splitter implements Callable<Integer> {
   private File outputDir;
 
   @CommandLine.Option(names = {"-r", "--rows"},
-                      description = "Number of rows",
+                      description = "Number of rows.",
                       defaultValue = "2")
   private int rows;
 
   @CommandLine.Option(names = {"-c", "--cols"},
-                      description = "Number of columns",
+                      description = "Number of columns.",
                       defaultValue = "2")
   private int cols;
 
@@ -46,6 +46,11 @@ public class Splitter implements Callable<Integer> {
   public Integer call() {
     if (!inputFile.exists()) {
       System.err.println("Error: Input file does not exist.");
+      return 1;
+    }
+
+    if (!inputFile.isFile()) {
+      System.err.println("Error: Input is not a file: " + inputFile);
       return 1;
     }
 
@@ -73,7 +78,7 @@ public class Splitter implements Callable<Integer> {
     int tileHeight = image.getHeight() / rows;
     if (tileWidth == 0 || tileHeight == 0) {
       System.err.println(
-          "Error: grid " + cols + "x" + rows + " is too large for a "
+          "Error: a " + rows + "x" + cols + " grid (rows x cols) is too large for a "
               + image.getWidth() + "x" + image.getHeight() + " image.");
       return 1;
     }
@@ -105,7 +110,8 @@ public class Splitter implements Callable<Integer> {
       }
     }
 
-    System.out.println("Split " + inputFile.getName() + " into " + rows + "x" + cols + " tiles in " + outputDir);
+    System.out.println("Split " + inputFile.getName() + " into a " + rows + "x" + cols
+        + " grid (rows x cols) in " + outputDir);
     return 0;
   }
 

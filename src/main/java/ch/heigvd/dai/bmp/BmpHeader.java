@@ -90,8 +90,11 @@ public class BmpHeader {
       throw new IOException(
           "Unsupported BMP: only 24-bit RGB is supported, got " + header.bitsPerPixel + " bits/pixel.");
     }
-    if (header.width <= 0 || header.height <= 0) {
+    if (header.height < 0) {
       throw new IOException("Unsupported BMP: top-down bitmaps (negative height) are not supported.");
+    }
+    if (header.width <= 0 || header.height == 0) {
+      throw new IOException("Invalid BMP: width and height must be positive.");
     }
 
     return header;
