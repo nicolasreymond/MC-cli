@@ -73,7 +73,8 @@ public class Splitter implements Callable<Integer> {
     }
 
     // Grille possiblement non divisible : l'exces de pixels (bord droit/bas)
-    // est simplement ignore, chaque tuile fait width/cols x height/rows.
+    // est ignore, chaque tuile fait width/cols x height/rows. On garde des
+    // tuiles de meme taille (plus simple pour merge), mais on le signale.
     int tileWidth = image.getWidth() / cols;
     int tileHeight = image.getHeight() / rows;
     if (tileWidth == 0 || tileHeight == 0) {
@@ -81,6 +82,17 @@ public class Splitter implements Callable<Integer> {
           "Error: a " + rows + "x" + cols + " grid (rows x cols) is too large for a "
               + image.getWidth() + "x" + image.getHeight() + " image.");
       return 1;
+    }
+
+    int droppedRight = image.getWidth() % cols;
+    int droppedBottom = image.getHeight() % rows;
+    if (droppedRight > 0) {
+      System.err.println("Warning: " + droppedRight + " px dropped on the right edge ("
+          + image.getWidth() + " is not a multiple of " + cols + " columns).");
+    }
+    if (droppedBottom > 0) {
+      System.err.println("Warning: " + droppedBottom + " px dropped on the bottom edge ("
+          + image.getHeight() + " is not a multiple of " + rows + " rows).");
     }
 
     // Les indices de position sont mis en premier dans le nom (avant le
