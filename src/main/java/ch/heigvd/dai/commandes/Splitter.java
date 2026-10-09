@@ -101,15 +101,23 @@ public class Splitter implements Callable<Integer> {
     int indexDigits = Integer.toString(Math.max(rows, cols) - 1).length();
     String indexFormat = "%0" + indexDigits + "d";
 
+    // Si on refuse d'ecraser, les nouvelles tuiles prennent le premier
+    // numero libre (_1, _2...), le meme pour toute la grille.
+    String fileSuffix = suffix;
     if (anyTileExists(indexFormat, suffix) && !confirmOverwrite()) {
-      System.out.println("Aborted: tiles already exist in " + outputDir);
-      return 1;
+      int n = 1;
+      while (anyTileExists(indexFormat, suffix + "_" + n)) {
+        n++;
+      }
+      fileSuffix = suffix + "_" + n;
+      System.out.println("Keeping the existing tiles; the new ones are named like "
+          + tileName(indexFormat, 0, 0, fileSuffix) + ".");
     }
 
     for (int row = 0; row < rows; row++) {
       for (int col = 0; col < cols; col++) {
         BmpImage tile = image.crop(col * tileWidth, row * tileHeight, tileWidth, tileHeight);
-        File tileFile = new File(outputDir, tileName(indexFormat, row, col, suffix));
+        File tileFile = new File(outputDir, tileName(indexFormat, row, col, fileSuffix));
         try (FileOutputStream out = new FileOutputStream(tileFile)) {
           tile.writeTo(out);
         } catch (Exception e) {
@@ -141,7 +149,7 @@ public class Splitter implements Callable<Integer> {
   }
 
   private boolean confirmOverwrite() {
-    System.out.print("Tiles already exist in the output folder. Overwrite? [y/N] ");
+    System.out.print("Tiles already exist in the output folder. Overwrite them? [y/N] ");
     Scanner scanner = new Scanner(System.in);
     String answer = scanner.hasNextLine() ? scanner.nextLine().trim().toLowerCase() : "";
     return answer.equals("y") || answer.equals("yes");
