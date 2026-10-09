@@ -3,9 +3,7 @@ package ch.heigvd.dai.commandes;
 import ch.heigvd.dai.Main;
 import ch.heigvd.dai.bmp.BmpImage;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -173,7 +171,35 @@ public class Merger implements Callable<Integer> {
                           + imagesToProcess.size() + " images. Some will be ignored.");
 //---------------------------------------------------------------------------------------------------------------------
 
-
-    return 0;
+    try {
+      processMerge(imagesToProcess, r, c, outputFile);
+      System.out.println("Fusion terminée avec succès : " + outputFile.getAbsolutePath());
+      return 0;
+    } catch (Exception e) {
+      System.err.println("Une erreur s'est produite lors de la fusion : " + e.getMessage());
+      return 1;
+    }
   }
+
+  // Separate function, easier to test with JUnit
+  public void processMerge(List<File> imagesToProcess, int r, int c, File outputFile) throws Exception {
+
+    BmpImage firstImage;
+    try (BufferedInputStream in = new BufferedInputStream(new FileInputStream(imagesToProcess.getFirst()))) {
+      firstImage = BmpImage.readFrom(in);
+    }
+
+    // Final canvas
+    int cellWidth = firstImage.getWidth();
+    int cellHeight = firstImage.getHeight();
+    BmpImage finalImage = BmpImage.create(cellWidth * c, cellHeight * r);
+
+
+
+
+    try (BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(outputFile))) {
+      finalImage.writeTo(out);
+    }
+  }
+
 }
