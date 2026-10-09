@@ -102,8 +102,9 @@ with a 3×17 grid: `00_00_tile.bmp`, `00_01_tile.bmp`, ...
 
 **Non-divisible dimensions**: if the image size isn't an exact multiple
 of the grid, each tile is `width/cols` × `height/rows` (integer
-division) and the leftover pixels on the right/bottom edge are dropped
-silently.
+division) and the leftover pixels on the right/bottom edge are dropped.
+All tiles keep the same size, which keeps `merge` simple. A warning on
+stderr tells how many pixels were lost; the exit code stays `0`.
 
 **Existing tiles**: if `outputDir` already contains tiles matching the
 current grid size and suffix, MC-cli asks for confirmation before
@@ -121,6 +122,7 @@ java -jar target/MC-cli.jar split examples/banque/forest_1.bmp out/ -r 3 -c 4
 Expected output:
 
 ```
+Warning: 1 px dropped on the bottom edge (640 is not a multiple of 3 rows).
 Split forest_1.bmp into a 3x4 grid (rows x cols) in out
 ```
 
@@ -133,7 +135,7 @@ Split forest_1.bmp into a 3x4 grid (rows x cols) in out
 ```
 
 The source image is 960×640, so each tile is 240×213: 640 is not a
-multiple of 3, and the last row of pixels is dropped.
+multiple of 3, which drops the last row of pixels (hence the warning).
 
 | Before (`forest_1.bmp`) | After (12 tiles) |
 |---|---|
