@@ -85,12 +85,8 @@ public class Merger implements Callable<Integer> {
   @Override
   public Integer call() {
 
-    if (repeat != null && (inputSources.files == null || inputSources.files.size() != 1)) {
-      System.err.println("Error : The --repeat option can only be used when the input is a single image");
-      return 1;
-    }
-
-    List<File> imagesToProcess = new ArrayList<>();
+//-------------------------- INPUT FILES ------------------------------------------------------------------------------
+    List<File> collectedFiles = new ArrayList<>();
 
     if (inputSources.directory != null) {
       // Lists the files in the directory
@@ -98,10 +94,7 @@ public class Merger implements Callable<Integer> {
       File[] dirFiles = inputSources.directory.listFiles((dir, name) -> name.toLowerCase().endsWith(".bmp"));
       if (dirFiles != null && dirFiles.length > 0) {
           Arrays.sort(dirFiles); // We have to make sure the images are in the right order (00_00, 00_01, etc)
-          Collections.addAll(imagesToProcess, dirFiles);
-        } else {
-          System.err.println("Error: No valid BMP files found in directory.");
-          return 1;
+          Collections.addAll(collectedFiles, dirFiles);
         }
     } else {
       System.out.println("Lecture des fichiers : " + inputSources.files);
@@ -110,22 +103,23 @@ public class Merger implements Callable<Integer> {
               .filter(File::isFile) // Verifies that it exists and that it is a file
               .filter(file -> file.getName().toLowerCase().endsWith(".bmp")) // Verifies that it end with bmp or BMP
               .toList(); // They get assigned to validFiles as an immutable list
-
-      if (validFiles.isEmpty()) {
-        System.err.println("Error: No valid BMP files provided in the arguments.");
+      collectedFiles.addAll(validFiles);
+    }
+      if (collectedFiles.isEmpty()) {
+        System.err.println("Error: No valid BMP files found.");
         return 1;
       }
 
+      List<File> imagesToProcess = new ArrayList<>();
+
       if (repeat != null) {
-        int nbFiles = validFiles.size();
+        int nbFiles = collectedFiles.size();
         // This way, if -R is enabled, images given will be repeated like so: A B C A B etc
-        for (int i = 0; i < repeat; i++) imagesToProcess.add(validFiles.get(i % nbFiles));
-      } else imagesToProcess.addAll(validFiles);
-    }
+        for (int i = 0; i < repeat; i++) imagesToProcess.add(collectedFiles.get(i % nbFiles));
+      } else imagesToProcess.addAll(collectedFiles);
+//---------------------------------------------------------------------------------------------------------------------
 
-
-    //TODO faire le mode par défaut
-
+//-------------------------- LAYOUT CREATION --------------------------------------------------------------------------
     int r = 1; // Rows
     int c = imagesToProcess.size(); // Columns (for now it's horizontal)
 
@@ -142,10 +136,44 @@ public class Merger implements Callable<Integer> {
         c = layout.grid.cols;
         System.out.printf("Mode : Grille (%d lignes, %d colonnes)%n", r, c);
       }
-    } else System.out.println("Mode par défaut (déduction automatique via les noms de fichiers)");
+    } else {
+      System.out.println("Mode par défaut (déduction automatique via les noms de fichiers)");
+
+      int maxRow = 0;
+      int maxCol = 0;
+      boolean formatDetected = false;
+
+      // Finds the largest indexes in the file names
+      for (File file : imagesToProcess) {
+        String[] parts = file.getName().split("_");
+
+        // We're looking for "row_column_"
+        if (parts.length >= 3) {
+          try {
+            int row = Integer.parseInt(parts[0]);
+            int col = Integer.parseInt(parts[1]);
+            maxRow = Math.max(maxRow, row);
+            maxCol = Math.max(maxCol, col);
+            formatDetected = true;
+          }
+          // In case there are non-conventional files mixed in (ex: "string_with_length_four.bmp")
+          catch (NumberFormatException ignored) {}
+        }
+      }
+
+      if (formatDetected) {
+        r = maxRow + 1; // Begins at 0
+        c = maxCol + 1;
+        System.out.printf("Grille détectée : %d lignes x %d colonnes.%n", r, c);
+      } else System.out.println("Format non reconnu. Fallback sur une fusion horizontale.");
+    }
+
+    if (r * c < imagesToProcess.size())
+      System.err.println("Warning: The layout (" + r + "x" + c + ") is too small for "
+                          + imagesToProcess.size() + " images. Some will be ignored.");
+//---------------------------------------------------------------------------------------------------------------------
 
 
     return 0;
   }
 }
-
