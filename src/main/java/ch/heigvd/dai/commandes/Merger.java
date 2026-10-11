@@ -31,7 +31,7 @@ public class Merger implements Callable<Integer> {
   static class InputSources {
     @Parameters(paramLabel = "<files>",
                 arity = "1..*",
-                description = "Liste des images à fusionner (ex: img1.png img2.png).")
+                description = "BMP images to merge, in reading order (e.g. a.bmp b.bmp).")
     List<File> files;
 
     @Option(names = {"-d", "--directory"},
