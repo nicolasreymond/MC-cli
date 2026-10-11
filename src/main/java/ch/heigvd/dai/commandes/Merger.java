@@ -60,8 +60,8 @@ public class Merger implements Callable<Integer> {
             description = "Stack the images vertically (1 column, N rows).")
     boolean vertical;
 
-    @Option(names = {"-h", "--horizontal"},
-            description = "Fusion horizontale (1 ligne, N colonnes).")
+    @Option(names = {"-H", "--horizontal"},
+            description = "Put the images side by side (1 row, N columns).")
     boolean horizontal;
 
     // Non-mutually exclusive subgroup to force the usage of both rows and columns
