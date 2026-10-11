@@ -57,7 +57,7 @@ public class Merger implements Callable<Integer> {
 
   static class LayoutOptions {
     @Option(names = {"-v", "--vertical"},
-            description = "Fusion verticale (1 colonne, N lignes).")
+            description = "Stack the images vertically (1 column, N rows).")
     boolean vertical;
 
     @Option(names = {"-h", "--horizontal"},
