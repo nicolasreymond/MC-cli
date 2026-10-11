@@ -162,9 +162,55 @@ Not implemented yet.
 
 ### `mosaic`
 
-Bonus: reconstructs an image as a photo mosaic.
+Bonus: rebuilds an image as a mosaic of solid-color tiles (pixel art
+effect).
 
-Not implemented yet.
+```sh
+java -jar target/MC-cli.jar mosaic <inputFile> -o <outputFile> [-r <rows>] [-c <cols>]
+```
+
+| Option | Default | Description |
+|---|---|---|
+| `<inputFile>` | — | Source BMP file (positional, required) |
+| `-o`, `--output` | — | Output BMP file (required) |
+| `-r`, `--rows` | `20` | Number of rows of tiles |
+| `-c`, `--cols` | `20` | Number of columns of tiles |
+| `-h`, `--help` | — | Show the help message |
+
+**How it works**: the three steps of the project in one command, in
+memory (no intermediate files):
+
+1. **split**: the image is cut into `rows × cols` tiles, with the same
+   rules as `split` (all tiles have the same size, leftover pixels on the
+   right/bottom edge are dropped with a warning);
+2. **recolor**: each tile is filled with its own average color: the mean
+   of the red, green and blue values of all its pixels, rounded;
+3. **merge**: the tiles are put back at their place.
+
+The output has the size of the tiles put together, i.e. the input minus
+the dropped pixels. More tiles keep more details; fewer tiles give
+bigger blocks. With one tile per pixel (`-r <height> -c <width>`), the
+image is unchanged.
+
+#### Example: the forest as a mosaic
+
+```sh
+java -jar target/MC-cli.jar mosaic examples/banque/forest_1.bmp -o forest-mosaic.bmp -r 16 -c 24
+```
+
+Expected output:
+
+```
+Mosaic of forest_1.bmp (16x24 tiles, rows x cols) written to forest-mosaic.bmp
+```
+
+| Original | 16×24 tiles | 32×48 tiles |
+|---|---|---|
+| ![Original forest image](docs/images/forest.png) | ![Forest as a mosaic of 16x24 solid-color tiles](docs/images/forest-mosaic-24.png) | ![Forest as a mosaic of 32x48 solid-color tiles](docs/images/forest-mosaic-48.png) |
+
+To keep square tiles, choose `rows` and `cols` in the same ratio as the
+image: `forest_1.bmp` is 960×640 (3:2), so `-r 16 -c 24` gives
+40×40 px tiles.
 
 ## Supported image format
 
@@ -223,6 +269,7 @@ Errors about the image file itself are printed as
 | `Unexpected end of file ...` | The file is truncated or corrupted. |
 | `Error: a 3x4 grid (rows x cols) is too large for a 2x2 image.` | More rows or columns than pixels. Use a smaller grid. |
 | `Error: rows and cols must be positive.` | `-r` and `-c` must be at least 1. |
+| `Error: Input file does not exist or is not a file: ...` (`mosaic`) | Check the path to the source image; it must be a `.bmp` file, not a folder. |
 
 ## Project structure
 
@@ -235,12 +282,16 @@ MC-cli/
 │   │   ├── Main.java               # root `mc-cli` command, registers the subcommands
 │   │   ├── commandes/
 │   │   │   ├── Splitter.java       # `split` command
-│   │   │   └── Merger.java         # `merge` command (work in progress)
+│   │   │   ├── Merger.java         # `merge` command
+│   │   │   └── Mosaic.java         # `mosaic` command (bonus)
 │   │   └── bmp/
 │   │       ├── BmpHeader.java      # 54-byte BMP header: read, validate, write (little-endian)
 │   │       └── BmpImage.java       # whole image: pixel I/O, crop, get/set pixel
 │   └── test/java/ch/heigvd/dai/
-│       └── bmp/BmpImageTest.java   # unit tests for the BMP classes (to be written, #18)
+│       ├── bmp/BmpImageTest.java   # BMP reading/writing, pixel order, errors, crop
+│       └── commandes/
+│           ├── SplitterTest.java   # `split` run on generated images
+│           └── MosaicTest.java     # average colors and the `mosaic` command
 ├── examples/banque/                # sample 24-bit BMP images to try the commands
 └── docs/images/                    # PNG screenshots used in this README
 ```
