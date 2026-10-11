@@ -137,6 +137,9 @@ public class Merger implements Callable<Integer> {
         c = layout.grid.cols;
         System.out.printf("Mode : Grille (%d lignes, %d colonnes)%n", r, c);
       }
+    }
+    else if (repeat != null) {
+      System.out.println("Mode répétition : fusion séquentielle activée");
     } else {
       System.out.println("Mode par défaut (déduction automatique via les noms de fichiers)");
 
