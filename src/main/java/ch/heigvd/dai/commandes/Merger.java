@@ -18,7 +18,7 @@ import picocli.CommandLine.Option;
 
 @Command(name = "merge",
          mixinStandardHelpOptions = true,
-         description = "Merge a grid of images into a single image.")
+         description = "Merge a grid of images into a single image")
 public class Merger implements Callable<Integer> {
 
   @ParentCommand protected Main parent;
@@ -31,23 +31,23 @@ public class Merger implements Callable<Integer> {
   static class InputSources {
     @Parameters(paramLabel = "<files>",
                 arity = "1..*",
-                description = "BMP images to merge, in reading order (e.g. a.bmp b.bmp).")
+                description = "BMP images to merge, in reading order (e.g. a.bmp b.bmp)")
     List<File> files;
 
     @Option(names = {"-d", "--directory"},
-            description = "Folder containing the BMP images to merge.")
+            description = "Folder containing the BMP images to merge")
     File directory;
   }
 
   // Output file
   @Option(names = {"-o", "--output"},
           required = true,
-          description = "Output BMP file (e.g. result.bmp).")
+          description = "Output BMP file (e.g. result.bmp)")
   private File outputFile;
 
   // Repeat a single image
   @Option(names = {"-R", "--repeat"},
-          description = "Use the input images N times in total, cycling through them (A B C A B ...).")
+          description = "Use the input images N times in total, cycling through them (A B C A B ...)")
   private Integer repeat;
 
   // Mutually exclusive layouts
@@ -57,11 +57,11 @@ public class Merger implements Callable<Integer> {
 
   static class LayoutOptions {
     @Option(names = {"-v", "--vertical"},
-            description = "Stack the images vertically (1 column, N rows).")
+            description = "Stack the images vertically (1 column, N rows)")
     boolean vertical;
 
     @Option(names = {"-H", "--horizontal"},
-            description = "Put the images side by side (1 row, N columns).")
+            description = "Put the images side by side (1 row, N columns)")
     boolean horizontal;
 
     // Non-mutually exclusive subgroup to force the usage of both rows and columns
@@ -72,12 +72,12 @@ public class Merger implements Callable<Integer> {
   static class GridOptions {
     @Option(names = {"-r", "--rows"},
             required = true,
-            description = "Number of rows of the output grid.")
+            description = "Number of rows of the output grid")
     int rows;
 
     @Option(names = {"-c", "--cols"},
             required = true,
-            description = "Number of columns of the output grid.")
+            description = "Number of columns of the output grid")
     int cols;
   }
 
@@ -89,14 +89,14 @@ public class Merger implements Callable<Integer> {
 
     if (inputSources.directory != null) {
       // Lists the files in the directory
-      System.out.println("Lecture depuis le dossier : " + inputSources.directory);
+      System.out.println("Reading from directory : " + inputSources.directory);
       File[] dirFiles = inputSources.directory.listFiles((dir, name) -> name.toLowerCase().endsWith(".bmp"));
       if (dirFiles != null && dirFiles.length > 0) {
           Arrays.sort(dirFiles); // We have to make sure the images are in the right order (00_00, 00_01, etc)
           Collections.addAll(collectedFiles, dirFiles);
         }
     } else {
-      System.out.println("Lecture des fichiers : " + inputSources.files);
+      System.out.println("Reading from files : " + inputSources.files);
 
       List<File> validFiles = inputSources.files.stream()
               .filter(File::isFile) // Verifies that it exists and that it is a file
@@ -105,7 +105,7 @@ public class Merger implements Callable<Integer> {
       collectedFiles.addAll(validFiles);
     }
       if (collectedFiles.isEmpty()) {
-        System.err.println("Error: No valid BMP files found.");
+        System.err.println("Error: No valid BMP files found");
         return 1;
       }
 
@@ -135,13 +135,13 @@ public class Merger implements Callable<Integer> {
       else if (layout.grid != null) {
         r = layout.grid.rows;
         c = layout.grid.cols;
-        System.out.printf("Mode : Grille (%d lignes, %d colonnes)%n", r, c);
+        System.out.printf("Mode: Grid (%d rows, %d columns)%n", r, c);
       }
     }
     else if (repeat != null) {
-      System.out.println("Mode répétition : fusion séquentielle activée");
+      System.out.println("Repeat mode: sequential merge activated");
     } else {
-      System.out.println("Mode par défaut (déduction automatique via les noms de fichiers)");
+      System.out.println("Default mode (auto-detected from file names)");
 
       int maxRow = 0;
       int maxCol = 0;
@@ -173,32 +173,32 @@ public class Merger implements Callable<Integer> {
 
 
       if (isStrictGrid) {
-        System.out.println("Mode : Grille spatiale absolue détectée.");
+        System.out.println("Mode: Absolute spatial grid detected");
         r = maxRow + 1;
         c = maxCol + 1;
         gridFiles = new File[r][c];
 
-        // Placement des fichiers dans la grille
+        // Placing files in the grid
         for (File file : imagesToProcess) {
           String[] parts = file.getName().split("_");
-          int row = Integer.parseInt(parts[0]); // Plus besoin de try-catch, on sait que ça passe
+          int row = Integer.parseInt(parts[0]); // No need for a try-catch, we know it works
           int col = Integer.parseInt(parts[1]);
           gridFiles[row][col] = file;
         }
-      } else System.out.println("Mode : Fichiers arbitraires. Fusion séquentielle classique.");
+      } else System.out.println("Mode: Arbitrary files, standard sequential merge");
     }
 
     if (r * c < imagesToProcess.size())
       System.err.println("Warning: The layout (" + r + "x" + c + ") is too small for "
-                          + imagesToProcess.size() + " images. Some will be ignored.");
+                          + imagesToProcess.size() + " images, some will be ignored");
 //---------------------------------------------------------------------------------------------------------------------
 
     try {
       processMerge(imagesToProcess, gridFiles, isStrictGrid, r, c, outputFile);
-      System.out.println("Fusion terminée avec succès : " + outputFile.getAbsolutePath());
+      System.out.println("Merge completed successfully : " + outputFile.getAbsolutePath());
       return 0;
     } catch (Exception e) {
-      System.err.println("Une erreur s'est produite lors de la fusion : " + e.getMessage());
+      System.err.println("An error occurred while merging : " + e.getMessage());
       return 1;
     }
   }
