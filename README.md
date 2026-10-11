@@ -106,9 +106,13 @@ division) and the leftover pixels on the right/bottom edge are dropped.
 All tiles keep the same size, which keeps `merge` simple. A warning on
 stderr tells how many pixels were lost; the exit code stays `0`.
 
-**Existing tiles**: if `outputDir` already contains tiles matching the
-current grid size and suffix, MC-cli asks for confirmation before
-overwriting them (`[y/N]`).
+**Existing tiles**: if some of the files this split is about to write
+already exist in `outputDir`, MC-cli asks before overwriting them
+(`[y/N]`). Answering anything but `y` (or just pressing Enter) keeps
+them: the new tiles get the first free number after the suffix, the
+same for the whole grid (`0_0_tile_1.bmp`, then `_2`, ...). Each set
+still sorts in grid order, but to `merge` one set, keep it alone in its
+folder or pass its files explicitly.
 
 #### Example: split a photo into a 3×4 grid
 
@@ -141,10 +145,12 @@ multiple of 3, which drops the last row of pixels (hence the warning).
 |---|---|
 | ![Original forest image](docs/images/forest.png) | ![The same image cut into a 3×4 grid of tiles](docs/images/forest-split.png) |
 
-Running the same command again asks before overwriting:
+Running the same command again asks before overwriting. Answering `n`
+keeps the first set and numbers the new one:
 
 ```
-Tiles already exist in the output folder. Overwrite? [y/N]
+Tiles already exist in the output folder. Overwrite them? [y/N] n
+Keeping the existing tiles; the new ones are named like 0_0_tile_1.bmp.
 ```
 
 Use `-s` to give the tiles another name, e.g. `-s part` produces
@@ -202,7 +208,7 @@ under *Advanced Options*.
 | Code | Meaning |
 |---|---|
 | `0` | Success |
-| `1` | Error while running the command (missing file, unreadable or unsupported image, invalid grid, write failure, overwrite refused) |
+| `1` | Error while running the command (missing file, unreadable or unsupported image, invalid grid, write failure) |
 | `2` | Invalid usage (unknown option, missing argument); the usage message is printed |
 
 ## Troubleshooting

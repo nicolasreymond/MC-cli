@@ -8,7 +8,6 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.util.Scanner;
 import java.util.concurrent.Callable;
-import java.util.regex.Pattern;
 import picocli.CommandLine;
 
 @CommandLine.Command(name = "split", description = "Split an image into a grid of tiles.")
@@ -102,17 +101,23 @@ public class Splitter implements Callable<Integer> {
     int indexDigits = Integer.toString(Math.max(rows, cols) - 1).length();
     String indexFormat = "%0" + indexDigits + "d";
 
-    if (existingTiles(outputDir, indexDigits) && !confirmOverwrite()) {
-      System.out.println("Aborted: tiles already exist in " + outputDir);
-      return 1;
+    // Si on refuse d'ecraser, les nouvelles tuiles prennent le premier
+    // numero libre (_1, _2...), le meme pour toute la grille.
+    String fileSuffix = suffix;
+    if (anyTileExists(indexFormat, suffix) && !confirmOverwrite()) {
+      int n = 1;
+      while (anyTileExists(indexFormat, suffix + "_" + n)) {
+        n++;
+      }
+      fileSuffix = suffix + "_" + n;
+      System.out.println("Keeping the existing tiles; the new ones are named like "
+          + tileName(indexFormat, 0, 0, fileSuffix) + ".");
     }
 
     for (int row = 0; row < rows; row++) {
       for (int col = 0; col < cols; col++) {
         BmpImage tile = image.crop(col * tileWidth, row * tileHeight, tileWidth, tileHeight);
-        String fileName = String.format(indexFormat, row) + "_" + String.format(indexFormat, col)
-            + "_" + suffix + ".bmp";
-        File tileFile = new File(outputDir, fileName);
+        File tileFile = new File(outputDir, tileName(indexFormat, row, col, fileSuffix));
         try (FileOutputStream out = new FileOutputStream(tileFile)) {
           tile.writeTo(out);
         } catch (Exception e) {
@@ -127,24 +132,24 @@ public class Splitter implements Callable<Integer> {
     return 0;
   }
 
-  /** Vrai si outputDir contient deja des tuiles issues d'un split precedent avec ce suffixe. */
-  private boolean existingTiles(File outputDir, int indexDigits) {
-    File[] files = outputDir.listFiles();
-    if (files == null) {
-      return false;
-    }
-    Pattern tilePattern = Pattern.compile(
-        "\\d{" + indexDigits + "}_\\d{" + indexDigits + "}_" + Pattern.quote(suffix) + "\\.bmp");
-    for (File f : files) {
-      if (tilePattern.matcher(f.getName()).matches()) {
-        return true;
+  private static String tileName(String indexFormat, int row, int col, String fileSuffix) {
+    return String.format(indexFormat, row) + "_" + String.format(indexFormat, col) + "_" + fileSuffix + ".bmp";
+  }
+
+  /** Vrai si au moins une des tuiles que ce split va ecrire existe deja dans outputDir. */
+  private boolean anyTileExists(String indexFormat, String fileSuffix) {
+    for (int row = 0; row < rows; row++) {
+      for (int col = 0; col < cols; col++) {
+        if (new File(outputDir, tileName(indexFormat, row, col, fileSuffix)).exists()) {
+          return true;
+        }
       }
     }
     return false;
   }
 
   private boolean confirmOverwrite() {
-    System.out.print("Tiles already exist in the output folder. Overwrite? [y/N] ");
+    System.out.print("Tiles already exist in the output folder. Overwrite them? [y/N] ");
     Scanner scanner = new Scanner(System.in);
     String answer = scanner.hasNextLine() ? scanner.nextLine().trim().toLowerCase() : "";
     return answer.equals("y") || answer.equals("yes");
