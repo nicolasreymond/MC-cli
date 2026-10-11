@@ -207,14 +207,16 @@ java -jar target/MC-cli.jar merge tiles/0_0_tile.bmp tiles/1_1_tile.bmp -H -o pa
 
 # four images in a 2x2 grid, in the order given
 java -jar target/MC-cli.jar merge a.bmp b.bmp c.bmp d.bmp -r 2 -c 2 -o grid.bmp
+
+# 3 images in a row, cycling through the two given (A B A): 1440x320
+java -jar target/MC-cli.jar merge tiles/0_0_tile.bmp tiles/0_1_tile.bmp -R 3 -o repeat.bmp
 ```
 
 **Known limitations**, being fixed: a file that does not exist is
 skipped, a missing tile leaves a black cell, images of different sizes
 are cropped or padded to the first one, and a folder holding several
-sets of tiles (`tile`, `tile_1`, ...) is not handled (#29). `--repeat`
-on files named like tiles produces a single image (#28). Keep one set of
-tiles per folder.
+sets of tiles (`tile`, `tile_1`, ...) is not handled (#29). Keep one set
+of tiles per folder.
 
 ### `mosaic`
 
@@ -279,7 +281,7 @@ Errors about the image file itself are printed as
 | `Unexpected end of file ...` | The file is truncated or corrupted. |
 | `Error: a 3x4 grid (rows x cols) is too large for a 2x2 image.` | More rows or columns than pixels. Use a smaller grid. |
 | `Error: rows and cols must be positive.` | `-r` and `-c` must be at least 1. |
-| `Error: No valid BMP files found.` (`merge`) | None of the given files exists or ends with `.bmp`, or the `-d` folder holds no `.bmp` file. |
+| `Error: No valid BMP files found` (`merge`) | None of the given files exists or ends with `.bmp`, or the `-d` folder holds no `.bmp` file. |
 | `Missing required option: '--output=<outputFile>'` (`merge`) | `merge` needs `-o <file>` to know where to write the result. |
 
 ## Project structure
