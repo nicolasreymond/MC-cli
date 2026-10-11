@@ -46,8 +46,8 @@ public class Merger implements Callable<Integer> {
   private File outputFile;
 
   // Repeat a single image
-  @Option(names = {"-R", "--Repeat"},
-          description = "Répète une image d'entrée N fois (utile avec un seul fichier en entrée).")
+  @Option(names = {"-R", "--repeat"},
+          description = "Use the input images N times in total, cycling through them (A B C A B ...).")
   private Integer repeat;
 
   // Mutually exclusive layouts
