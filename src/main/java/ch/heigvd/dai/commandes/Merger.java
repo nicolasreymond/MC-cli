@@ -77,7 +77,7 @@ public class Merger implements Callable<Integer> {
 
     @Option(names = {"-c", "--cols"},
             required = true,
-            description = "Nombre de colonnes de la grille finale.")
+            description = "Number of columns of the output grid.")
     int cols;
   }
 
