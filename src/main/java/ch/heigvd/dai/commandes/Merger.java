@@ -35,7 +35,7 @@ public class Merger implements Callable<Integer> {
     List<File> files;
 
     @Option(names = {"-d", "--directory"},
-            description = "Dossier contenant les images à fusionner.")
+            description = "Folder containing the BMP images to merge.")
     File directory;
   }
 
