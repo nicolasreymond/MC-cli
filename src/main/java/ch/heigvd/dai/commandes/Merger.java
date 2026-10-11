@@ -17,6 +17,7 @@ import picocli.CommandLine.Parameters;
 import picocli.CommandLine.Option;
 
 @Command(name = "merge",
+         mixinStandardHelpOptions = true,
          description = "Merge a grid of images into a single image.")
 public class Merger implements Callable<Integer> {
 
