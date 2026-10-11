@@ -72,7 +72,7 @@ public class Merger implements Callable<Integer> {
   static class GridOptions {
     @Option(names = {"-r", "--rows"},
             required = true,
-            description = "Nombre de lignes de la grille finale.")
+            description = "Number of rows of the output grid.")
     int rows;
 
     @Option(names = {"-c", "--cols"},
