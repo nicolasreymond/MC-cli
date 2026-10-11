@@ -279,6 +279,8 @@ Errors about the image file itself are printed as
 | `Unexpected end of file ...` | The file is truncated or corrupted. |
 | `Error: a 3x4 grid (rows x cols) is too large for a 2x2 image.` | More rows or columns than pixels. Use a smaller grid. |
 | `Error: rows and cols must be positive.` | `-r` and `-c` must be at least 1. |
+| `Error: No valid BMP files found.` (`merge`) | None of the given files exists or ends with `.bmp`, or the `-d` folder holds no `.bmp` file. |
+| `Missing required option: '--output=<outputFile>'` (`merge`) | `merge` needs `-o <file>` to know where to write the result. |
 
 ## Project structure
 
@@ -291,7 +293,7 @@ MC-cli/
 │   │   ├── Main.java               # root `mc-cli` command, registers the subcommands
 │   │   ├── commandes/
 │   │   │   ├── Splitter.java       # `split` command
-│   │   │   └── Merger.java         # `merge` command (work in progress)
+│   │   │   └── Merger.java         # `merge` command
 │   │   └── bmp/
 │   │       ├── BmpHeader.java      # 54-byte BMP header: read, validate, write (little-endian)
 │   │       └── BmpImage.java       # whole image: pixel I/O, crop, get/set pixel
