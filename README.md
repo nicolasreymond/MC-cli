@@ -158,13 +158,63 @@ Use `-s` to give the tiles another name, e.g. `-s part` produces
 
 ### `merge`
 
-Assembles several images into a grid.
+Assembles several BMP images into a single image, laid out on a grid.
 
 ```sh
-java -jar target/MC-cli.jar merge <inputDir> <outputFile> [-r <rows>] [-c <cols>]
+java -jar target/MC-cli.jar merge (<files>... | -d <dir>) -o <outputFile> [-r <rows> -c <cols> | -v | -H] [-R <n>]
 ```
 
-Not implemented yet.
+| Option | Default | Description |
+|---|---|---|
+| `<files>...` | — | BMP images to merge, in reading order (positional) |
+| `-d`, `--directory` | — | Folder whose `.bmp` files are merged, sorted by name. Use either `<files>` or `-d` |
+| `-o`, `--output` | — | Output BMP file (required) |
+| `-r`, `--rows` / `-c`, `--cols` | — | Grid size; give both together |
+| `-v`, `--vertical` | — | Stack the images vertically (1 column) |
+| `-H`, `--horizontal` | — | Put the images side by side (1 row) |
+| `-R`, `--repeat` | — | Use the input images N times in total, cycling through them (A B C A B ...) |
+| `-h`, `--help` | — | Show the help message |
+
+**Layout**: `-r`/`-c`, `-v` and `-H` are mutually exclusive. Without any
+of them:
+
+- if every file name starts with `<row>_<col>_`, as the tiles written by
+  `split`, each image goes to its row and column. `merge -d` on a `split`
+  folder therefore rebuilds the original image;
+- otherwise the images are put side by side, in one row.
+
+**Size**: every cell takes the size of the first image, so the output is
+`cols × width` by `rows × height` of that image. Images fill the grid in
+reading order (left to right, then top to bottom). If there are more
+images than cells, the extra ones are ignored and a warning is printed.
+
+#### Example: rebuild a split image
+
+```sh
+java -jar target/MC-cli.jar split examples/banque/forest_1.bmp tiles/ -r 2 -c 2
+java -jar target/MC-cli.jar merge -d tiles/ -o rebuilt.bmp
+```
+
+`rebuilt.bmp` is identical to `forest_1.bmp`, pixel for pixel. With a
+grid that does not divide the image (e.g. `-r 3 -c 4`), it lacks the
+pixels that `split` dropped: 960×639 instead of 960×640.
+
+Other layouts:
+
+```sh
+# two tiles side by side: 960x320
+java -jar target/MC-cli.jar merge tiles/0_0_tile.bmp tiles/1_1_tile.bmp -H -o pair.bmp
+
+# four images in a 2x2 grid, in the order given
+java -jar target/MC-cli.jar merge a.bmp b.bmp c.bmp d.bmp -r 2 -c 2 -o grid.bmp
+```
+
+**Known limitations**, being fixed: a file that does not exist is
+skipped, a missing tile leaves a black cell, images of different sizes
+are cropped or padded to the first one, and a folder holding several
+sets of tiles (`tile`, `tile_1`, ...) is not handled (#29). `--repeat`
+on files named like tiles produces a single image (#28). Keep one set of
+tiles per folder.
 
 ### `mosaic`
 
