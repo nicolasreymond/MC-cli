@@ -42,7 +42,7 @@ public class Merger implements Callable<Integer> {
   // Output file
   @Option(names = {"-o", "--output"},
           required = true,
-          description = "Fichier d'image de sortie (ex: result.png).")
+          description = "Output BMP file (e.g. result.bmp).")
   private File outputFile;
 
   // Repeat a single image
