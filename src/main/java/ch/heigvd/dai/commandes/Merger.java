@@ -184,6 +184,7 @@ public class Merger implements Callable<Integer> {
               if (multipleSets) continue;
             }
 
+            imagesFromLatestSet.add(file);
             maxRow = Math.max(maxRow, row);
             maxCol = Math.max(maxCol, col);
           }
