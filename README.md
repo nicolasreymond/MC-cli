@@ -356,8 +356,11 @@ MC-cli/
 │       ├── bmp/BmpImageTest.java   # BMP reading/writing, pixel order, errors, crop
 │       └── commandes/
 │           ├── SplitterTest.java   # `split` run on generated images
+│           ├── MergerTest.java     # `merge` run on generated tiles
 │           └── MosaicTest.java     # average colors and the `mosaic` command
-├── examples/images/                # sample 24-bit BMP images to try the commands
+├── examples/
+│   ├── README.md                   # source and licence of the sample images
+│   └── images/                     # sample 24-bit BMP images to try the commands
 └── docs/images/                    # PNG screenshots used in this README
 ```
 
