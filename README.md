@@ -183,8 +183,8 @@ of them:
   folder therefore rebuilds the original image;
 - otherwise the images are put side by side, in one row.
 
-**Size**: every cell takes the size of the first image, so the output is
-`cols × width` by `rows × height` of that image. Images fill the grid in
+**Size**: all the images must have the same size, so the output is
+`cols × width` by `rows × height` of one image. Images fill the grid in
 reading order (left to right, then top to bottom). If there are more
 images than cells, the extra ones are ignored and a warning is printed.
 
@@ -212,11 +212,14 @@ java -jar target/MC-cli.jar merge a.bmp b.bmp c.bmp d.bmp -r 2 -c 2 -o grid.bmp
 java -jar target/MC-cli.jar merge tiles/0_0_tile.bmp tiles/0_1_tile.bmp -R 3 -o repeat.bmp
 ```
 
-**Known limitations**, being fixed: a file that does not exist is
-skipped, a missing tile leaves a black cell, images of different sizes
-are cropped or padded to the first one, and a folder holding several
-sets of tiles (`tile`, `tile_1`, ...) is not handled (#29). Keep one set
-of tiles per folder.
+**Problems reported**:
+
+- a file that does not exist or is not a `.bmp` stops `merge` with an
+  error, and so do images of different sizes;
+- a missing tile leaves a black cell and prints a warning;
+- a folder holding several sets of tiles (`tile`, `tile_1`, ..., after
+  splitting twice into the same folder) merges only the last set, with a
+  warning.
 
 ### `mosaic`
 
