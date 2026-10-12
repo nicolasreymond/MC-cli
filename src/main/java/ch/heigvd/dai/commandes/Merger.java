@@ -157,7 +157,7 @@ public class Merger implements Callable<Integer> {
 
       // Finds the largest indexes in the file names
       for (File file : imagesToProcess) {
-        String[] parts = file.getName().split("_");
+        String[] parts = file.getName().replaceFirst("(?i)\\.bmp$", "").split("_");
 
         // We're looking for "row_column_"
         if (parts.length >= 3) {
@@ -268,9 +268,9 @@ public class Merger implements Callable<Integer> {
           currentImg = BmpImage.readFrom(in);
         }
 
-        if (currentImg.getHeight() != cellHeight || currentImg.getWidth() != cellWidth) {
+        if (currentImg.getHeight() != cellHeight || currentImg.getWidth() != cellWidth)
           throw new Exception("The tile sizes are different.");
-        }
+
 
         int startX = col * cellWidth;
         int startY = row * cellHeight;
