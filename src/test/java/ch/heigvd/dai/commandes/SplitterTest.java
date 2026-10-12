@@ -264,4 +264,30 @@ class SplitterTest {
     assertArrayEquals(BLUE, tileColor("1_0_tile.bmp"));
     assertArrayEquals(WHITE, tileColor("1_1_tile.bmp"));
   }
+
+  // --- Taille des tuiles sur une grille non divisible ---
+
+  @Test
+  void tileSizeUsesIntegerDivision() throws IOException {
+    assertEquals(0, split(image(7, 5), 2, 3));
+
+    BmpImage last = tile("1_2_tile.bmp");
+    assertEquals(2, last.getWidth()); // 7 / 3
+    assertEquals(2, last.getHeight()); // 5 / 2
+  }
+
+  @Test
+  void leftoverPixelsAreInNoTile() throws IOException {
+    // 3x1 rouge, vert, bleu coupe en 2 colonnes : le bleu est perdu
+    BmpImage image = BmpImage.create(3, 1);
+    image.setPixel(0, 0, 255, 0, 0);
+    image.setPixel(1, 0, 0, 255, 0);
+    image.setPixel(2, 0, 0, 0, 255);
+
+    assertEquals(0, split(save(image), 1, 2));
+
+    assertArrayEquals(RED, tileColor("0_0_tile.bmp"));
+    assertArrayEquals(GREEN, tileColor("0_1_tile.bmp"));
+    assertEquals(2, tileCount());
+  }
 }
