@@ -242,6 +242,28 @@ class MergerTest {
     }
 
     @Test
+    void multipleSetsOfDifferentSizesKeepTheLastSet() throws IOException {
+        // split 1x1, puis split 2x2 dans le meme dossier sans ecraser : la 2e serie est en _1
+        image("tiles/0_0_tile.bmp", 4, 4, RED);
+        image("tiles/0_0_tile_1.bmp", 2, 2, GREEN);
+        image("tiles/0_1_tile_1.bmp", 2, 2, BLUE);
+        image("tiles/1_0_tile_1.bmp", 2, 2, WHITE);
+        image("tiles/1_1_tile_1.bmp", 2, 2, GREEN);
+        Path dir = tempDir.resolve("tiles");
+        Path out = tempDir.resolve("out.bmp");
+
+        assertEquals(0, merge("merge", "-d", dir.toString(), "-o", out.toString()));
+
+        assertTrue(stderr.toString().contains("Multiple sets detected"));
+        BmpImage result = read(out);
+        assertEquals(4, result.getWidth());
+        assertEquals(4, result.getHeight());
+        assertArrayEquals(GREEN, result.getPixel(0, 0));
+        assertArrayEquals(BLUE, result.getPixel(2, 0));
+        assertArrayEquals(WHITE, result.getPixel(0, 2));
+    }
+
+    @Test
     void nonBmpFilesInFolderAreIgnored() throws IOException {
         image("tiles/a.bmp", 2, 2, RED);
         // Create a dummy txt file
