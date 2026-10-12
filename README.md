@@ -1,8 +1,8 @@
 # MC-cli
 
 A command-line tool to split an image into a grid of tiles, merge several
-images into a grid, and (bonus) reconstruct an image as a photo mosaic —
-built for PW1 (DAI course, HEIG-VD).
+images into a grid, and (bonus) rebuild an image as a mosaic of
+solid-color tiles — built for PW1 (DAI course, HEIG-VD).
 
 ## Quick start
 
