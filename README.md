@@ -25,6 +25,7 @@ The 12 tiles land in `out/`. Requires JDK 25, see
   - [`split`](#split)
   - [`merge`](#merge)
   - [`mosaic`](#mosaic)
+- [Demo](#demo)
 - [Supported image format](#supported-image-format)
 - [Exit codes](#exit-codes)
 - [Troubleshooting](#troubleshooting)
@@ -272,6 +273,33 @@ Mosaic of forest.bmp (16x24 tiles, rows x cols) written to forest-mosaic.bmp
 To keep square tiles, choose `rows` and `cols` in the same ratio as the
 image: `forest.bmp` is 960×640 (3:2), so `-r 16 -c 24` gives
 40×40 px tiles.
+
+## Demo
+
+The three commands one after another on the sample forest, run from the
+project root after building:
+
+```sh
+# 1. cut the image into a 2x3 grid of 320x320 tiles
+java -jar target/MC-cli.jar split examples/images/forest.bmp demo/tiles/ -r 2 -c 3
+ls demo/tiles/
+
+# 2. put them back together: the grid is read from the file names
+java -jar target/MC-cli.jar merge -d demo/tiles/ -o demo/rebuilt.bmp
+
+# 3. same pixels as the original (the 54-byte header is skipped: the
+#    print resolution stored in it may differ)
+cmp demo/rebuilt.bmp examples/images/forest.bmp 54 54 && echo "same pixels"
+
+# 4. two tiles repeated in a row (A B A B): 1280x320
+java -jar target/MC-cli.jar merge demo/tiles/0_0_tile.bmp demo/tiles/1_2_tile.bmp -R 4 -o demo/strip.bmp
+
+# 5. the forest as a mosaic, coarse then fine
+java -jar target/MC-cli.jar mosaic examples/images/forest.bmp -o demo/mosaic-coarse.bmp -r 8 -c 12
+java -jar target/MC-cli.jar mosaic examples/images/forest.bmp -o demo/mosaic-fine.bmp -r 32 -c 48
+```
+
+Open the `.bmp` files in `demo/` with any image viewer to see the results.
 
 ## Supported image format
 
