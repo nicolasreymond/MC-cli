@@ -9,7 +9,7 @@ built for PW1 (DAI course, HEIG-VD).
 ```sh
 git clone https://github.com/nicolasreymond/MC-cli.git && cd MC-cli
 ./mvnw clean package
-java -jar target/MC-cli.jar split examples/banque/forest_1.bmp out/ -r 3 -c 4
+java -jar target/MC-cli.jar split examples/images/forest.bmp out/ -r 3 -c 4
 ```
 
 The 12 tiles land in `out/`. Requires JDK 25, see
@@ -116,18 +116,18 @@ folder or pass its files explicitly.
 
 #### Example: split a photo into a 3×4 grid
 
-The repository ships a few test images in `examples/banque/`. Starting
+The repository ships a few test images in `examples/images/`. Starting
 from the project root, after building:
 
 ```sh
-java -jar target/MC-cli.jar split examples/banque/forest_1.bmp out/ -r 3 -c 4
+java -jar target/MC-cli.jar split examples/images/forest.bmp out/ -r 3 -c 4
 ```
 
 Expected output:
 
 ```
 Warning: 1 px dropped on the bottom edge (640 is not a multiple of 3 rows).
-Split forest_1.bmp into a 3x4 grid (rows x cols) in out
+Split forest.bmp into a 3x4 grid (rows x cols) in out
 ```
 
 `out/` now contains 12 tiles, named in reading order:
@@ -141,7 +141,7 @@ Split forest_1.bmp into a 3x4 grid (rows x cols) in out
 The source image is 960×640, so each tile is 240×213: 640 is not a
 multiple of 3, which drops the last row of pixels (hence the warning).
 
-| Before (`forest_1.bmp`) | After (12 tiles) |
+| Before (`forest.bmp`) | After (12 tiles) |
 |---|---|
 | ![Original forest image](docs/images/forest.png) | ![The same image cut into a 3×4 grid of tiles](docs/images/forest-split.png) |
 
@@ -191,11 +191,11 @@ images than cells, the extra ones are ignored and a warning is printed.
 #### Example: rebuild a split image
 
 ```sh
-java -jar target/MC-cli.jar split examples/banque/forest_1.bmp tiles/ -r 2 -c 2
+java -jar target/MC-cli.jar split examples/images/forest.bmp tiles/ -r 2 -c 2
 java -jar target/MC-cli.jar merge -d tiles/ -o rebuilt.bmp
 ```
 
-`rebuilt.bmp` is identical to `forest_1.bmp`, pixel for pixel. With a
+`rebuilt.bmp` is identical to `forest.bmp`, pixel for pixel. With a
 grid that does not divide the image (e.g. `-r 3 -c 4`), it lacks the
 pixels that `split` dropped: 960×639 instead of 960×640.
 
@@ -253,13 +253,13 @@ image is unchanged.
 #### Example: the forest as a mosaic
 
 ```sh
-java -jar target/MC-cli.jar mosaic examples/banque/forest_1.bmp -o forest-mosaic.bmp -r 16 -c 24
+java -jar target/MC-cli.jar mosaic examples/images/forest.bmp -o forest-mosaic.bmp -r 16 -c 24
 ```
 
 Expected output:
 
 ```
-Mosaic of forest_1.bmp (16x24 tiles, rows x cols) written to forest-mosaic.bmp
+Mosaic of forest.bmp (16x24 tiles, rows x cols) written to forest-mosaic.bmp
 ```
 
 | Original | 16×24 tiles | 32×48 tiles |
@@ -267,7 +267,7 @@ Mosaic of forest_1.bmp (16x24 tiles, rows x cols) written to forest-mosaic.bmp
 | ![Original forest image](docs/images/forest.png) | ![Forest as a mosaic of 16x24 solid-color tiles](docs/images/forest-mosaic-24.png) | ![Forest as a mosaic of 32x48 solid-color tiles](docs/images/forest-mosaic-48.png) |
 
 To keep square tiles, choose `rows` and `cols` in the same ratio as the
-image: `forest_1.bmp` is 960×640 (3:2), so `-r 16 -c 24` gives
+image: `forest.bmp` is 960×640 (3:2), so `-r 16 -c 24` gives
 40×40 px tiles.
 
 ## Supported image format
@@ -352,7 +352,7 @@ MC-cli/
 │       └── commandes/
 │           ├── SplitterTest.java   # `split` run on generated images
 │           └── MosaicTest.java     # average colors and the `mosaic` command
-├── examples/banque/                # sample 24-bit BMP images to try the commands
+├── examples/images/                # sample 24-bit BMP images to try the commands
 └── docs/images/                    # PNG screenshots used in this README
 ```
 
