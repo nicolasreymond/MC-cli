@@ -32,6 +32,7 @@ The 12 tiles land in `out/`. Requires JDK 25, see
 - [Project structure](#project-structure)
 - [Tests](#tests)
 - [Contributing](#contributing)
+- [Use of AI](#use-of-ai)
 - [Authors](#authors)
 
 ## Description
@@ -428,6 +429,18 @@ The two authors work through GitHub issues and pull requests:
 5. Once `dev` is stable, it is merged into `main` through a pull request.
 
 Make sure `./mvnw clean package` succeeds before opening a pull request.
+
+## Use of AI
+
+We used an AI assistant (Claude Code) for two things:
+
+- **Git messages**: writing commit messages, pull request descriptions
+  and issues in a consistent style;
+- **Debugging**: helping us find the cause of bugs and suggesting fixes,
+  which we tested before keeping them.
+
+Every change was read, tested and reviewed by the other author through a
+pull request.
 
 ## Authors
 
