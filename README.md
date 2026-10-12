@@ -331,6 +331,8 @@ Errors about the image file itself are printed as
 | `Error: a 3x4 grid (rows x cols) is too large for a 2x2 image.` | More rows or columns than pixels. Use a smaller grid. |
 | `Error: rows and cols must be positive.` | `-r` and `-c` must be at least 1. |
 | `Error: No valid BMP files found` (`merge`) | None of the given files exists or ends with `.bmp`, or the `-d` folder holds no `.bmp` file. |
+| `Error: At least one file is not valid.` (`merge`) | One of the given files does not exist or does not end with `.bmp`. Check the paths. |
+| `An error occurred while merging : The tile sizes are different.` | All the images must have the same size: merge tiles from a single `split`, or images of equal size. |
 | `Missing required option: '--output=<outputFile>'` (`merge`) | `merge` needs `-o <file>` to know where to write the result. |
 | `Error: Input file does not exist or is not a file: ...` (`mosaic`) | Check the path to the source image; it must be a `.bmp` file, not a folder. |
 
