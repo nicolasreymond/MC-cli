@@ -17,10 +17,13 @@ import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import picocli.CommandLine;
 
 /**
@@ -92,6 +95,29 @@ class SplitterTest {
 
   private boolean tileExists(String name) {
     return Files.exists(tempDir.resolve("out").resolve(name));
+  }
+
+  /** Lit une tuile du dossier de sortie. */
+  private BmpImage tile(String name) throws IOException {
+    try (FileInputStream in = new FileInputStream(tempDir.resolve("out").resolve(name).toFile())) {
+      return BmpImage.readFrom(in);
+    }
+  }
+
+  /** Nombre de fichiers dans le dossier de sortie. */
+  private long tileCount() throws IOException {
+    try (Stream<Path> files = Files.list(tempDir.resolve("out"))) {
+      return files.count();
+    }
+  }
+
+  /** Ecrit l'image donnee comme image source et renvoie son chemin. */
+  private Path save(BmpImage image) throws IOException {
+    Path file = tempDir.resolve("input.bmp");
+    try (FileOutputStream out = new FileOutputStream(file.toFile())) {
+      image.writeTo(out);
+    }
+    return file;
   }
 
   private int split(Path input, int rows, int cols) {
@@ -184,5 +210,120 @@ class SplitterTest {
     assertEquals(0, split(image(4, 4, 255, 0, 0), 2, 2));
     assertFalse(stdout.toString().contains("Overwrite"), stdout.toString());
     assertTrue(tileExists("0_0_tile.bmp"));
+  }
+
+  // --- Noms et contenu des tuiles ---
+
+  private static final int[] GREEN = {0, 255, 0};
+  private static final int[] WHITE = {255, 255, 255};
+
+  @Test
+  void tilesAreNamedRowColSuffix() throws IOException {
+    assertEquals(0, split(image(4, 6), 3, 2));
+
+    for (int row = 0; row < 3; row++) {
+      for (int col = 0; col < 2; col++) {
+        assertTrue(tileExists(row + "_" + col + "_tile.bmp"), row + "_" + col);
+      }
+    }
+    assertEquals(6, tileCount());
+  }
+
+  @Test
+  void indicesAreZeroPaddedToTheLargestIndex() throws IOException {
+    // 11 colonnes : le plus grand indice est 10, donc 2 chiffres pour tous
+    assertEquals(0, split(image(11, 2), 1, 11));
+
+    assertTrue(tileExists("00_00_tile.bmp"));
+    assertTrue(tileExists("00_10_tile.bmp"));
+    assertFalse(tileExists("0_0_tile.bmp"));
+  }
+
+  @Test
+  void suffixOptionReplacesTile() throws IOException {
+    assertEquals(0, new CommandLine(new Main()).execute("split", image(4, 4).toString(),
+        tempDir.resolve("out").toString(), "-r", "2", "-c", "2", "-s", "part"));
+
+    assertTrue(tileExists("1_1_part.bmp"));
+    assertFalse(tileExists("1_1_tile.bmp"));
+  }
+
+  @Test
+  void eachTileHoldsItsPartOfTheImage() throws IOException {
+    // 4x4, un quart de couleur differente par tuile
+    BmpImage image = BmpImage.create(4, 4);
+    for (int y = 0; y < 4; y++) {
+      for (int x = 0; x < 4; x++) {
+        int[] c = y < 2 ? (x < 2 ? RED : GREEN) : (x < 2 ? BLUE : WHITE);
+        image.setPixel(x, y, c[0], c[1], c[2]);
+      }
+    }
+
+    assertEquals(0, split(save(image), 2, 2));
+
+    assertArrayEquals(RED, tileColor("0_0_tile.bmp"));
+    assertArrayEquals(GREEN, tileColor("0_1_tile.bmp"));
+    assertArrayEquals(BLUE, tileColor("1_0_tile.bmp"));
+    assertArrayEquals(WHITE, tileColor("1_1_tile.bmp"));
+  }
+
+  // --- Taille des tuiles sur une grille non divisible ---
+
+  @Test
+  void tileSizeUsesIntegerDivision() throws IOException {
+    assertEquals(0, split(image(7, 5), 2, 3));
+
+    BmpImage last = tile("1_2_tile.bmp");
+    assertEquals(2, last.getWidth()); // 7 / 3
+    assertEquals(2, last.getHeight()); // 5 / 2
+  }
+
+  @Test
+  void leftoverPixelsAreInNoTile() throws IOException {
+    // 3x1 rouge, vert, bleu coupe en 2 colonnes : le bleu est perdu
+    BmpImage image = BmpImage.create(3, 1);
+    image.setPixel(0, 0, 255, 0, 0);
+    image.setPixel(1, 0, 0, 255, 0);
+    image.setPixel(2, 0, 0, 0, 255);
+
+    assertEquals(0, split(save(image), 1, 2));
+
+    assertArrayEquals(RED, tileColor("0_0_tile.bmp"));
+    assertArrayEquals(GREEN, tileColor("0_1_tile.bmp"));
+    assertEquals(2, tileCount());
+  }
+
+  // --- Erreurs et codes de sortie ---
+
+  @Test
+  void gridLargerThanTheImageIsAnError() throws IOException {
+    assertEquals(1, split(image(2, 2), 3, 1));
+    assertEquals("Error: a 3x1 grid (rows x cols) is too large for a 2x2 image.",
+        stderr.toString().strip());
+    assertFalse(tileExists("0_0_tile.bmp"));
+  }
+
+  @Test
+  void missingInputIsAnError() {
+    assertEquals(1, split(tempDir.resolve("nope.bmp"), 2, 2));
+    assertEquals("Error: Input file does not exist.", stderr.toString().strip());
+  }
+
+  @Test
+  void folderAsInputIsAnError() {
+    assertEquals(1, split(tempDir, 2, 2));
+    assertTrue(stderr.toString().startsWith("Error: Input is not a file"), stderr.toString());
+  }
+
+  @ParameterizedTest
+  @CsvSource({"0, 2", "2, 0", "-1, 2"})
+  void rowsAndColsMustBePositive(int rows, int cols) throws IOException {
+    assertEquals(1, split(image(4, 4), rows, cols));
+    assertEquals("Error: rows and cols must be positive.", stderr.toString().strip());
+  }
+
+  @Test
+  void missingOutputFolderIsAUsageError() throws IOException {
+    assertEquals(2, new CommandLine(new Main()).execute("split", image(4, 4).toString()));
   }
 }
