@@ -268,8 +268,7 @@ public class Merger implements Callable<Integer> {
         }
 
         if (currentImg.getHeight() != cellHeight || currentImg.getWidth() != cellWidth) {
-          System.err.println("Error: The tile sizes are different.");
-          throw new Exception();
+          throw new Exception("The tile sizes are different.");
         }
 
         int startX = col * cellWidth;
