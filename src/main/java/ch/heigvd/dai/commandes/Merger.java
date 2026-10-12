@@ -246,13 +246,16 @@ public class Merger implements Callable<Integer> {
           currentImg = BmpImage.readFrom(in);
         }
 
-        int drawW = Math.min(cellWidth, currentImg.getWidth());
-        int drawH = Math.min(cellHeight, currentImg.getHeight());
+        if (currentImg.getHeight() != cellHeight || currentImg.getWidth() != cellWidth) {
+          System.err.println("Error: The tile sizes are different.");
+          throw new Exception();
+        }
+
         int startX = col * cellWidth;
         int startY = row * cellHeight;
 
-        for (int y = 0; y < drawH; y++) {
-          for (int x = 0; x < drawW; x++) {
+        for (int y = 0; y < cellHeight; y++) {
+          for (int x = 0; x < cellWidth; x++) {
             int[] rgb = currentImg.getPixel(x, y);
             finalImage.setPixel(startX + x, startY + y, rgb[0], rgb[1], rgb[2]);
           }
