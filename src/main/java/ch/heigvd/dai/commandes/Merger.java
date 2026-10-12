@@ -212,13 +212,15 @@ public class Merger implements Callable<Integer> {
           int col = Integer.parseInt(parts[1]);
           gridFiles[row][col] = file;
         }
+        imagesToProcess = imagesFromLatestSet; // Only the last set is merged, its first tile gives the cell size
       } else System.out.println("Mode: Arbitrary files, standard sequential merge");
     }
 
-    if (r * c < imagesToProcess.size())
-      System.err.println("Warning: " + (multipleSets ? "Multiple sets detected, only keeping the last set"
-              : "The chosen layout (" + r + "x" + c + ") is too small for " + imagesToProcess.size() + " images, " +
-              "some will be ignored"));
+    if (multipleSets)
+      System.err.println("Warning: Multiple sets detected, only keeping the last set");
+    else if (r * c < imagesToProcess.size())
+      System.err.println("Warning: The chosen layout (" + r + "x" + c + ") is too small for "
+              + imagesToProcess.size() + " images, some will be ignored");
 //---------------------------------------------------------------------------------------------------------------------
 
     try {
