@@ -29,6 +29,4 @@ Thumbs.db
 
 # Images (garder seulement quelques fichiers de test legers)
 *.bmp
-!examples/banque/flowers_1.bmp
-!examples/banque/abstract_art_1.bmp
-!examples/banque/forest_1.bmp
+!examples/**/*.bmp
