@@ -205,8 +205,8 @@ Other layouts:
 # two tiles side by side: 960x320
 java -jar target/MC-cli.jar merge tiles/0_0_tile.bmp tiles/1_1_tile.bmp -H -o pair.bmp
 
-# four images in a 2x2 grid, in the order given
-java -jar target/MC-cli.jar merge a.bmp b.bmp c.bmp d.bmp -r 2 -c 2 -o grid.bmp
+# the four tiles in a 2x2 grid, in the order given (here, last tile first): 960x640
+java -jar target/MC-cli.jar merge tiles/1_1_tile.bmp tiles/1_0_tile.bmp tiles/0_1_tile.bmp tiles/0_0_tile.bmp -r 2 -c 2 -o grid.bmp
 
 # 3 images in a row, cycling through the two given (A B A): 1440x320
 java -jar target/MC-cli.jar merge tiles/0_0_tile.bmp tiles/0_1_tile.bmp -R 3 -o repeat.bmp
