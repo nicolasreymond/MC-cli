@@ -22,6 +22,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import picocli.CommandLine;
 
 /**
@@ -289,5 +291,39 @@ class SplitterTest {
     assertArrayEquals(RED, tileColor("0_0_tile.bmp"));
     assertArrayEquals(GREEN, tileColor("0_1_tile.bmp"));
     assertEquals(2, tileCount());
+  }
+
+  // --- Erreurs et codes de sortie ---
+
+  @Test
+  void gridLargerThanTheImageIsAnError() throws IOException {
+    assertEquals(1, split(image(2, 2), 3, 1));
+    assertEquals("Error: a 3x1 grid (rows x cols) is too large for a 2x2 image.",
+        stderr.toString().strip());
+    assertFalse(tileExists("0_0_tile.bmp"));
+  }
+
+  @Test
+  void missingInputIsAnError() {
+    assertEquals(1, split(tempDir.resolve("nope.bmp"), 2, 2));
+    assertEquals("Error: Input file does not exist.", stderr.toString().strip());
+  }
+
+  @Test
+  void folderAsInputIsAnError() {
+    assertEquals(1, split(tempDir, 2, 2));
+    assertTrue(stderr.toString().startsWith("Error: Input is not a file"), stderr.toString());
+  }
+
+  @ParameterizedTest
+  @CsvSource({"0, 2", "2, 0", "-1, 2"})
+  void rowsAndColsMustBePositive(int rows, int cols) throws IOException {
+    assertEquals(1, split(image(4, 4), rows, cols));
+    assertEquals("Error: rows and cols must be positive.", stderr.toString().strip());
+  }
+
+  @Test
+  void missingOutputFolderIsAUsageError() throws IOException {
+    assertEquals(2, new CommandLine(new Main()).execute("split", image(4, 4).toString()));
   }
 }
