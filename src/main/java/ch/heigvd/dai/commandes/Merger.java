@@ -94,20 +94,26 @@ public class Merger implements Callable<Integer> {
       if (dirFiles != null && dirFiles.length > 0) {
           Arrays.sort(dirFiles); // We have to make sure the images are in the right order (00_00, 00_01, etc)
           Collections.addAll(collectedFiles, dirFiles);
-        }
+      }
+      else {
+        System.err.println("Error: No valid BMP files found");
+        return 1;
+      }
     } else {
       System.out.println("Reading from files : " + inputSources.files);
 
       List<File> validFiles = inputSources.files.stream()
               .filter(File::isFile) // Verifies that it exists and that it is a file
-              .filter(file -> file.getName().toLowerCase().endsWith(".bmp")) // Verifies that it end with bmp or BMP
+              .filter(file -> file.getName().toLowerCase().endsWith(".bmp")) // Verifies that it ends with bmp or BMP
               .toList(); // They get assigned to validFiles as an immutable list
       collectedFiles.addAll(validFiles);
-    }
-      if (collectedFiles.isEmpty()) {
-        System.err.println("Error: No valid BMP files found");
+      // In case inputSources.files.size() == 0
+      if (inputSources.files.size() > collectedFiles.size() || collectedFiles.isEmpty()) {
+        System.err.println("Error: " +
+                          (collectedFiles.isEmpty() ? "No valid BMP files found" : "At least one file is not valid."));
         return 1;
       }
+    }
 
       List<File> imagesToProcess = new ArrayList<>();
       boolean isStrictGrid = false;
@@ -224,7 +230,10 @@ public class Merger implements Callable<Integer> {
 
         if (isStrictGrid) { // We place the tiles using their index
           currentFile = gridFiles[row][col];
-          if (currentFile == null) continue; // Missing tile, we keep the tile empty
+          if (currentFile == null) { // Missing tile, we keep the tile empty
+            System.err.println("Warning: The tile with index: " + row + "_" + col + " could not be found.");
+            continue;
+          }
         } else { // We merge every image next to one another
           if (imgIndex >= sequentialFiles.size()) break;
           currentFile = sequentialFiles.get(imgIndex);
