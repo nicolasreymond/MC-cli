@@ -115,20 +115,21 @@ public class Merger implements Callable<Integer> {
       }
     }
 
-      List<File> imagesToProcess = new ArrayList<>();
-      boolean isStrictGrid = false;
-      File[][] gridFiles = null;
+    List<File> imagesToProcess = new ArrayList<>();
+    boolean isStrictGrid = false;
+    File[][] gridFiles = null;
 
-      if (repeat != null) {
-        int nbFiles = collectedFiles.size();
-        // This way, if -R is enabled, images given will be repeated like so: A B C A B etc
-        for (int i = 0; i < repeat; i++) imagesToProcess.add(collectedFiles.get(i % nbFiles));
-      } else imagesToProcess.addAll(collectedFiles);
+    if (repeat != null) {
+      int nbFiles = collectedFiles.size();
+      // This way, if -R is enabled, images given will be repeated like so: A B C A B etc
+      for (int i = 0; i < repeat; i++) imagesToProcess.add(collectedFiles.get(i % nbFiles));
+    } else imagesToProcess.addAll(collectedFiles);
 //---------------------------------------------------------------------------------------------------------------------
 
 //-------------------------- LAYOUT CREATION --------------------------------------------------------------------------
     int r = 1; // Rows
     int c = imagesToProcess.size(); // Columns (for now it's horizontal)
+    boolean multipleSets = false;
 
     // Find out the final layout
     if (layout != null) {
@@ -144,14 +145,15 @@ public class Merger implements Callable<Integer> {
         System.out.printf("Mode: Grid (%d rows, %d columns)%n", r, c);
       }
     }
-    else if (repeat != null) {
-      System.out.println("Repeat mode: sequential merge activated");
-    } else {
+    else if (repeat != null) System.out.println("Repeat mode: sequential merge activated");
+    else {
       System.out.println("Default mode (auto-detected from file names)");
 
       int maxRow = 0;
       int maxCol = 0;
+      int setNb = 0;
       isStrictGrid = true;
+      List<File> imagesFromLatestSet = new ArrayList<>();
 
       // Finds the largest indexes in the file names
       for (File file : imagesToProcess) {
@@ -162,6 +164,26 @@ public class Merger implements Callable<Integer> {
           try {
             int row = Integer.parseInt(parts[0]);
             int col = Integer.parseInt(parts[1]);
+
+            try {
+              if (setNb < Integer.parseInt(parts[parts.length - 1])) {
+                imagesFromLatestSet.clear();
+                imagesFromLatestSet.add(file);
+                maxRow = row;
+                maxCol = col;
+                setNb = Integer.parseInt(parts[parts.length - 1]);
+                multipleSets = true;
+              }
+              else if (setNb == Integer.parseInt(parts[parts.length - 1])) {
+                imagesFromLatestSet.add(file);
+                maxRow = Math.max(maxRow, row);
+                maxCol = Math.max(maxCol, col);
+              }
+              continue;
+            } catch (NumberFormatException e) { // Landing here means we're evaluating an image from the first set
+              if (multipleSets) continue;
+            }
+
             maxRow = Math.max(maxRow, row);
             maxCol = Math.max(maxCol, col);
           }
@@ -176,8 +198,6 @@ public class Merger implements Callable<Integer> {
         }
       }
 
-
-
       if (isStrictGrid) {
         System.out.println("Mode: Absolute spatial grid detected");
         r = maxRow + 1;
@@ -185,7 +205,7 @@ public class Merger implements Callable<Integer> {
         gridFiles = new File[r][c];
 
         // Placing files in the grid
-        for (File file : imagesToProcess) {
+        for (File file : imagesFromLatestSet) {
           String[] parts = file.getName().split("_");
           int row = Integer.parseInt(parts[0]); // No need for a try-catch, we know it works
           int col = Integer.parseInt(parts[1]);
@@ -195,8 +215,9 @@ public class Merger implements Callable<Integer> {
     }
 
     if (r * c < imagesToProcess.size())
-      System.err.println("Warning: The layout (" + r + "x" + c + ") is too small for "
-                          + imagesToProcess.size() + " images, some will be ignored");
+      System.err.println("Warning: " + (multipleSets ? "Multiple sets detected, only keeping the last set"
+              : "The chosen layout (" + r + "x" + c + ") is too small for " + imagesToProcess.size() + " images, " +
+              "some will be ignored"));
 //---------------------------------------------------------------------------------------------------------------------
 
     try {
