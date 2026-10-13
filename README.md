@@ -432,12 +432,18 @@ Make sure `./mvnw clean package` succeeds before opening a pull request.
 
 ## Use of AI
 
-We used an AI assistant (Claude Code) for two things:
+We used AI assistants (Claude Code and Gemini) during the project, as a
+help alongside our own work:
 
 - **Git messages**: writing commit messages, pull request descriptions
-  and issues in a consistent style;
-- **Debugging**: helping us find the cause of bugs and suggesting fixes,
-  which we tested before keeping them.
+  and issues, so that the history stays clear and follows the
+  Conventional Commits style;
+- **Debugging**: explaining error messages, helping us find the cause of
+  bugs and suggesting fixes, which we tested before keeping them;
+- **Code generation**: part of the code was generated with their help,
+  then read, adapted and completed by us;
+- **Understanding**: explaining technical points such as the BMP format
+  or picocli features when we needed them.
 
 Every change was read, tested and reviewed by the other author through a
 pull request.
