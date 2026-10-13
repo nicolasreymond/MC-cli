@@ -390,7 +390,8 @@ MC-cli/
 ├── examples/
 │   ├── README.md                   # source and licence of the sample images
 │   └── images/                     # sample 24-bit BMP images to try the commands
-└── docs/images/                    # PNG screenshots used in this README
+├── docs/images/                    # PNG screenshots used in this README
+└── presentation/                   # slides (Marp source, PDF, PPTX) and the demo script
 ```
 
 The code is split in two layers:
