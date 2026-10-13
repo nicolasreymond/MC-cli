@@ -1,8 +1,8 @@
 # MC-cli
 
 A command-line tool to split an image into a grid of tiles, merge several
-images into a grid, and (bonus) reconstruct an image as a photo mosaic —
-built for PW1 (DAI course, HEIG-VD).
+images into a grid, and (bonus) rebuild an image as a mosaic of
+solid-color tiles — built for PW1 (DAI course, HEIG-VD).
 
 ## Quick start
 
@@ -25,12 +25,14 @@ The 12 tiles land in `out/`. Requires JDK 25, see
   - [`split`](#split)
   - [`merge`](#merge)
   - [`mosaic`](#mosaic)
+- [Demo](#demo)
 - [Supported image format](#supported-image-format)
 - [Exit codes](#exit-codes)
 - [Troubleshooting](#troubleshooting)
 - [Project structure](#project-structure)
 - [Tests](#tests)
 - [Contributing](#contributing)
+- [Use of AI](#use-of-ai)
 - [Authors](#authors)
 
 ## Description
@@ -205,8 +207,8 @@ Other layouts:
 # two tiles side by side: 960x320
 java -jar target/MC-cli.jar merge tiles/0_0_tile.bmp tiles/1_1_tile.bmp -H -o pair.bmp
 
-# four images in a 2x2 grid, in the order given
-java -jar target/MC-cli.jar merge a.bmp b.bmp c.bmp d.bmp -r 2 -c 2 -o grid.bmp
+# the four tiles in a 2x2 grid, in the order given (here, last tile first): 960x640
+java -jar target/MC-cli.jar merge tiles/1_1_tile.bmp tiles/1_0_tile.bmp tiles/0_1_tile.bmp tiles/0_0_tile.bmp -r 2 -c 2 -o grid.bmp
 
 # 3 images in a row, cycling through the two given (A B A): 1440x320
 java -jar target/MC-cli.jar merge tiles/0_0_tile.bmp tiles/0_1_tile.bmp -R 3 -o repeat.bmp
@@ -272,6 +274,33 @@ Mosaic of forest.bmp (16x24 tiles, rows x cols) written to forest-mosaic.bmp
 To keep square tiles, choose `rows` and `cols` in the same ratio as the
 image: `forest.bmp` is 960×640 (3:2), so `-r 16 -c 24` gives
 40×40 px tiles.
+
+## Demo
+
+The three commands one after another on the sample forest, run from the
+project root after building:
+
+```sh
+# 1. cut the image into a 2x3 grid of 320x320 tiles
+java -jar target/MC-cli.jar split examples/images/forest.bmp demo/tiles/ -r 2 -c 3
+ls demo/tiles/
+
+# 2. put them back together: the grid is read from the file names
+java -jar target/MC-cli.jar merge -d demo/tiles/ -o demo/rebuilt.bmp
+
+# 3. same pixels as the original (the 54-byte header is skipped: the
+#    print resolution stored in it may differ)
+cmp demo/rebuilt.bmp examples/images/forest.bmp 54 54 && echo "same pixels"
+
+# 4. two tiles repeated in a row (A B A B): 1280x320
+java -jar target/MC-cli.jar merge demo/tiles/0_0_tile.bmp demo/tiles/1_2_tile.bmp -R 4 -o demo/strip.bmp
+
+# 5. the forest as a mosaic, coarse then fine
+java -jar target/MC-cli.jar mosaic examples/images/forest.bmp -o demo/mosaic-coarse.bmp -r 8 -c 12
+java -jar target/MC-cli.jar mosaic examples/images/forest.bmp -o demo/mosaic-fine.bmp -r 32 -c 48
+```
+
+Open the `.bmp` files in `demo/` with any image viewer to see the results.
 
 ## Supported image format
 
@@ -400,6 +429,24 @@ The two authors work through GitHub issues and pull requests:
 5. Once `dev` is stable, it is merged into `main` through a pull request.
 
 Make sure `./mvnw clean package` succeeds before opening a pull request.
+
+## Use of AI
+
+We used AI assistants (Claude Code and Gemini) during the project, as a
+help alongside our own work:
+
+- **Git messages**: writing commit messages, pull request descriptions
+  and issues, so that the history stays clear and follows the
+  Conventional Commits style;
+- **Debugging**: explaining error messages, helping us find the cause of
+  bugs and suggesting fixes, which we tested before keeping them;
+- **Code generation**: part of the code was generated with their help,
+  then read, adapted and completed by us;
+- **Understanding**: explaining technical points such as the BMP format
+  or picocli features when we needed them.
+
+Every change was read, tested and reviewed by the other author through a
+pull request.
 
 ## Authors
 
