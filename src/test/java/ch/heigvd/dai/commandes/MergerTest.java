@@ -293,4 +293,99 @@ class MergerTest {
         assertEquals(4, result.getWidth());
         assertEquals(2, result.getHeight());
     }
+
+    // --- Nouveaux tests d'Inférence, Layouts et Erreurs ---
+
+    @Test
+    void gridIsInferredWithZeroPaddedNamesInRandomOrder() throws IOException {
+        // Noms avec zéros initiaux
+        Path p00 = image("tiles/00_00_tile.bmp", 2, 2, RED);
+        Path p01 = image("tiles/00_01_tile.bmp", 2, 2, GREEN);
+        Path p10 = image("tiles/01_00_tile.bmp", 2, 2, BLUE);
+        Path p11 = image("tiles/01_01_tile.bmp", 2, 2, WHITE);
+        Path out = tempDir.resolve("out.bmp");
+
+        // Fichiers passés dans un ordre aléatoire sur la ligne de commande
+        assertEquals(0, merge("merge", p10.toString(), p01.toString(), p11.toString(), p00.toString(), "-o", out.toString()));
+
+        assertTrue(stdout.toString().contains("Absolute spatial grid detected"));
+        BmpImage result = read(out);
+        assertEquals(4, result.getWidth());
+        assertEquals(4, result.getHeight());
+        assertArrayEquals(RED, result.getPixel(0, 0));   // 00_00 au bon endroit
+        assertArrayEquals(GREEN, result.getPixel(2, 0)); // 00_01 au bon endroit
+        assertArrayEquals(BLUE, result.getPixel(0, 2));  // 01_00 au bon endroit
+        assertArrayEquals(WHITE, result.getPixel(2, 2)); // 01_01 au bon endroit
+    }
+
+    @Test
+    void verticalLayoutStacksImages() throws IOException {
+        Path p1 = image("1.bmp", 2, 2, RED);
+        Path p2 = image("2.bmp", 2, 2, BLUE);
+        Path out = tempDir.resolve("out.bmp");
+
+        assertEquals(0, merge("merge", p1.toString(), p2.toString(), "-v", "-o", out.toString()));
+
+        BmpImage result = read(out);
+        assertEquals(2, result.getWidth());
+        assertEquals(4, result.getHeight()); // 2 images l'une sous l'autre (2 rows x 2px)
+        assertArrayEquals(RED, result.getPixel(0, 0));
+        assertArrayEquals(BLUE, result.getPixel(0, 2));
+    }
+
+    @Test
+    void repeatLayoutCyclesThroughImages() throws IOException {
+        Path p1 = image("1.bmp", 2, 2, RED);
+        Path p2 = image("2.bmp", 2, 2, BLUE);
+        Path out = tempDir.resolve("out.bmp");
+
+        // 3 images horizontales en cyclant sur les 2 fournies
+        assertEquals(0, merge("merge", p1.toString(), p2.toString(), "-R", "3", "-o", out.toString()));
+
+        BmpImage result = read(out);
+        assertEquals(6, result.getWidth()); // 3 images l'une à côté de l'autre (3 cols x 2px)
+        assertEquals(2, result.getHeight());
+        assertArrayEquals(RED, result.getPixel(0, 0));  // 1ère image
+        assertArrayEquals(BLUE, result.getPixel(2, 0)); // 2ème image
+        assertArrayEquals(RED, result.getPixel(4, 0));  // 3ème image (recyclage de la 1ère)
+    }
+
+    @Test
+    void extraImagesBeyondGridCapacityAreIgnoredWithWarning() throws IOException {
+        Path p1 = image("1.bmp", 2, 2, RED);
+        Path p2 = image("2.bmp", 2, 2, GREEN);
+        Path p3 = image("3.bmp", 2, 2, BLUE); // Image en trop
+        Path out = tempDir.resolve("out.bmp");
+
+        // Grille de 1 ligne et 2 colonnes (capacité 2 images)
+        assertEquals(0, merge("merge", p1.toString(), p2.toString(), p3.toString(), "-r", "1", "-c", "2", "-o", out.toString()));
+
+        assertTrue(stderr.toString().contains("some will be ignored"));
+        BmpImage result = read(out);
+        assertEquals(4, result.getWidth());
+        assertEquals(2, result.getHeight());
+        assertArrayEquals(RED, result.getPixel(0, 0));
+        assertArrayEquals(GREEN, result.getPixel(2, 0));
+    }
+
+    @Test
+    void usageErrorsReturnExitCode2() throws IOException {
+        Path p1 = image("1.bmp", 2, 2, RED);
+        Path p2 = image("2.bmp", 2, 2, BLUE);
+        Path out = tempDir.resolve("out.bmp");
+        Path dir = tempDir.resolve("tiles");
+        Files.createDirectories(dir);
+
+        // 1. Manque de l'option obligatoire -o
+        assertEquals(2, merge("merge", p1.toString(), p2.toString()));
+
+        // 2. Options de grille incomplètes (-r fourni mais sans -c)
+        assertEquals(2, merge("merge", p1.toString(), p2.toString(), "-o", out.toString(), "-r", "2"));
+
+        // 3. Layouts mutuellement exclusifs (-v et -H ensemble)
+        assertEquals(2, merge("merge", p1.toString(), p2.toString(), "-o", out.toString(), "-v", "-H"));
+
+        // 4. Inputs mutuellement exclusifs (fichiers individuels ET dossier -d ensemble)
+        assertEquals(2, merge("merge", p1.toString(), "-d", dir.toString(), "-o", out.toString()));
+    }
 }
